@@ -1,0 +1,35 @@
+services:
+  postgres:
+    image: postgres:18.3
+    environment:
+      POSTGRES_DB: lexify
+      POSTGRES_USER: ${DB_USERNAME:-lexify}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-lexify}
+    ports:
+      - "127.0.0.1:5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d lexify"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  libretranslate:
+    image: libretranslate/libretranslate:v1.9.6
+    environment:
+      LT_LOAD_ONLY: en,ru
+    ports:
+      - "127.0.0.1:5000:5000"
+    volumes:
+      - libretranslate_models:/home/libretranslate/.local
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:5000/languages', timeout=5)"]
+      interval: 10s
+      timeout: 10s
+      retries: 10
+      start_period: 5m
+
+volumes:
+  postgres_data:
+  libretranslate_models:

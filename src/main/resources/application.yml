@@ -1,0 +1,20 @@
+spring:
+  application:
+    name: lexify
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/lexify}
+    username: ${DB_USERNAME:lexify}
+    password: ${DB_PASSWORD:lexify}
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: validate
+
+server:
+  port: ${SERVER_PORT:8080}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health
