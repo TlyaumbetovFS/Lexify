@@ -5,7 +5,25 @@
 ## Стек
 
 Java 25, Spring Boot 4.1.2, Gradle, PostgreSQL, Spring Data JPA, Flyway,
-Lombok, MapStruct. Локальный перевод — LibreTranslate.
+Spring Security, JWT, Lombok, MapStruct. Локальный перевод — LibreTranslate.
+
+## Структура
+
+Код в `src/main/java/com/lexify` разделён по слоям:
+
+```text
+client       — клиент LibreTranslate
+config       — конфигурация Spring
+controller   — REST-контроллеры
+dto          — запросы и ответы
+exception    — обработка ошибок API
+mapper       — преобразование моделей в DTO
+model        — JPA-сущности
+repository   — доступ к базе данных
+service      — бизнес-логика
+```
+
+Тесты в `src/test/java/com/lexify` повторяют структуру основных пакетов.
 
 ## Запуск
 
@@ -14,8 +32,26 @@ Gradle автоматически загрузит JDK 25 для сборки и
 
 ```sh
 docker compose up -d --wait
+```
+
+Один раз создайте локальный JWT-ключ:
+
+```sh
+echo "JWT_SECRET=$(openssl rand -base64 32)" > .env
+chmod 600 .env
+```
+
+Загрузите переменные и запустите приложение:
+
+```sh
+set -a
+. ./.env
+set +a
 ./gradlew bootRun
 ```
+
+Файл `.env` исключён из Git. Используйте один и тот же ключ между запусками;
+после смены ключа ранее выданные токены перестанут работать.
 
 При первом запуске LibreTranslate скачивает модели русского и английского языков.
 Если загрузка моделей занимает больше пяти минут, дождитесь её завершения:
@@ -42,7 +78,8 @@ PostgreSQL доступен на `localhost:5432`, база, пользоват�
 разработки — `lexify`. Данные и модели сохраняются в Docker volumes.
 
 Приложение поддерживает переменные окружения `DB_URL`, `DB_USERNAME`,
-`DB_PASSWORD` и `SERVER_PORT`. При смене учётных данных задавайте одинаковые
+`DB_PASSWORD`, `SERVER_PORT`, `TRANSLATION_URL` и обязательную `JWT_SECRET`
+(случайный ключ минимум 32 байта в Base64). При смене учётных данных задавайте одинаковые
 значения для приложения и Compose. Учётные данные существующей базы при смене
 переменных Compose автоматически не обновляются.
 
@@ -52,9 +89,51 @@ PostgreSQL доступен на `localhost:5432`, база, пользоват�
 ./gradlew clean build
 ```
 
-На первом этапе подготовлен каркас и инфраструктура. Пользовательские API,
-миграции предметной области и тесты сервисов появятся на следующих этапах.
+## API
 
-Проверено: сборка на JDK 25, запуск с PostgreSQL, ответ `UP` от
-`/actuator/health` и перевод `привет` → `hello` через локальный LibreTranslate.
-Автоматических тестов на этом этапе нет.
+Регистрация и вход возвращают `accessToken`, `tokenType` и `expiresIn` в секундах.
+JWT действует один час. Пароль — от 8 символов, не более 72 байт в UTF-8.
+
+```sh
+curl http://localhost:8080/api/auth/register \
+  -H 'Content-Type: application/json' \
+  -d '{"email":"user@example.com","password":"password123"}'
+
+curl http://localhost:8080/api/auth/login \
+  -H 'Content-Type: application/json' \
+  -d '{"email":"user@example.com","password":"password123"}'
+```
+
+Скопируйте `accessToken` в переменную `TOKEN`. Для запросов к словарю передавайте
+`Authorization: Bearer $TOKEN`.
+
+```sh
+curl http://localhost:8080/api/words \
+  -H "Authorization: Bearer $TOKEN" \
+  -H 'Content-Type: application/json' \
+  -d '{"russianText":"привет","example":"Hello, friend!"}'
+
+curl http://localhost:8080/api/words -H "Authorization: Bearer $TOKEN"
+```
+
+| Метод | Путь | Действие |
+| --- | --- | --- |
+| POST | `/api/auth/register` | Регистрация и выдача JWT |
+| POST | `/api/auth/login` | Вход и выдача JWT |
+| GET | `/api/words` | Список своих слов |
+| GET | `/api/words/{id}` | Своя карточка слова |
+| POST | `/api/words` | Добавление слова с переводом |
+| PUT | `/api/words/{id}` | Замена русского текста и примера |
+| DELETE | `/api/words/{id}` | Удаление слова |
+
+`PUT` принимает тот же JSON, что `POST`: `russianText` и необязательный `example`.
+Если пример не указан, он очищается. При изменении русского текста перевод
+обновляется автоматически. Слова сохраняются без пробелов по краям и в нижнем
+регистре; одно слово нельзя добавить себе дважды. Примеры указываются вручную.
+
+Ошибки: `400` — неверный запрос, `401` — неверные учётные данные или JWT,
+`404` — слово не найдено в вашем словаре, `409` — дубликат,
+`502` — переводчик недоступен или вернул некорректный ответ.
+При ошибке перевода новое слово не сохраняется, существующее не изменяется.
+
+Тесты сервисов и JWT выполняются без Docker через `./gradlew test`.
