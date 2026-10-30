@@ -34,7 +34,7 @@ class TranslationClientTest {
                 .andRespond(withSuccess("""
                         {"translatedText":"hello"}
                         """, MediaType.APPLICATION_JSON));
-        assertThat(client.translate("привет")).isEqualTo("hello");
+        assertThat(client.translate("привет", "ru", "en")).isEqualTo("hello");
         server.verify();
     }
 
@@ -60,8 +60,21 @@ class TranslationClientTest {
         assertBadGateway();
     }
 
+    @Test
+    void sendsEnglishToRussianTranslationRequest() {
+        server.expect(requestTo("http://translation/translate"))
+                .andExpect(content().json("""
+                        {"q":"hello","source":"en","target":"ru","format":"text"}
+                        """))
+                .andRespond(withSuccess("""
+                        {"translatedText":"привет"}
+                        """, MediaType.APPLICATION_JSON));
+        assertThat(client.translate("hello", "en", "ru")).isEqualTo("привет");
+        server.verify();
+    }
+
     private void assertBadGateway() {
-        assertThatThrownBy(() -> client.translate("привет"))
+        assertThatThrownBy(() -> client.translate("привет", "ru", "en"))
                 .isInstanceOfSatisfying(ResponseStatusException.class,
                         exception -> assertThat(exception.getStatusCode().value()).isEqualTo(502));
         server.verify();

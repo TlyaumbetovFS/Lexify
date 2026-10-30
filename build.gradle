@@ -41,3 +41,9 @@ dependencies {
 tasks.named('test') {
     useJUnitPlatform()
 }
+
+tasks.named('processResources') {
+    from('frontend/dist') {
+        into 'static'
+    }
+}

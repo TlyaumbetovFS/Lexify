@@ -19,6 +19,8 @@ app:
     ttl: 1h
   translation:
     url: ${TRANSLATION_URL:http://localhost:5000}
+  dictionary:
+    url: ${DICTIONARY_URL:https://api.dictionaryapi.dev}
 
 management:
   endpoints:

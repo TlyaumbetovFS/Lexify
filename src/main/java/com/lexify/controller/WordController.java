@@ -53,4 +53,9 @@ public class WordController {
     public void delete(@AuthenticationPrincipal Jwt jwt, @PathVariable Long id) {
         service.delete(Long.valueOf(jwt.getSubject()), id);
     }
+
+    @PostMapping("/{id}/enrich")
+    public WordResponse enrich(@AuthenticationPrincipal Jwt jwt, @PathVariable Long id) {
+        return service.enrich(Long.valueOf(jwt.getSubject()), id);
+    }
 }

@@ -75,7 +75,7 @@ class CollectionServiceTest {
 
         var result = service.get(1L, 10L);
 
-        assertThat(result.words()).containsExactly(new WordResponse(20L, "привет", "hello", null));
+        assertThat(result.words()).containsExactly(new WordResponse(20L, "привет", "hello", null, "ru", null));
     }
 
     @Test
@@ -222,6 +222,7 @@ class CollectionServiceTest {
     private Word word() {
         var word = new Word();
         word.setId(20L);
+        word.setSourceLanguage("ru");
         word.setRussianText("привет");
         word.setEnglishText("hello");
         return word;

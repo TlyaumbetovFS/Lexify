@@ -1,6 +1,4 @@
 package com.lexify.dto;
-
-
-
-public record WordResponse(Long id, String russianText, String englishText, String example) {
+public record WordResponse(Long id, String russianText, String englishText, String example,
+                           String sourceLanguage, DictionaryDetails dictionary) {
 }

@@ -16,12 +16,12 @@ public class TranslationClient {
 
     private final RestClient translationRestClient;
 
-    public String translate(String text) {
+    public String translate(String text, String source, String target) {
         try {
             var response = translationRestClient.post()
                     .uri("/translate")
                     .contentType(MediaType.APPLICATION_JSON)
-                    .body(new TranslationRequest(text, "ru", "en", "text"))
+                    .body(new TranslationRequest(text, source, target, "text"))
                     .retrieve()
                     .body(TranslationResponse.class);
             if (response == null || response.translatedText() == null

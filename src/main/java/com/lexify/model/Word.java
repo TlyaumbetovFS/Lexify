@@ -15,7 +15,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Entity
-@Table(name = "words", uniqueConstraints = @UniqueConstraint(columnNames = {"user_id", "russian_text"}))
+@Table(name = "words", uniqueConstraints = @UniqueConstraint(columnNames = {"user_id", "english_text", "russian_text"}))
 @Getter
 @Setter
 @NoArgsConstructor
@@ -29,7 +29,7 @@ public class Word {
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
-    @Column(nullable = false, length = 100)
+    @Column(nullable = false, length = 500)
     private String russianText;
 
     @Column(nullable = false, length = 500)
@@ -37,4 +37,11 @@ public class Word {
 
     @Column(length = 1000)
     private String example;
+
+    @Column(nullable = false, length = 2)
+    private String sourceLanguage;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "dictionary_word")
+    private DictionaryEntry dictionary;
 }

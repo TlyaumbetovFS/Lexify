@@ -8,9 +8,9 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface CollectionRepository extends JpaRepository<WordCollection, Long> {
 
-    @EntityGraph(attributePaths = "words")
+    @EntityGraph(attributePaths = {"words", "words.dictionary"})
     List<WordCollection> findByUserIdOrderByIdDesc(Long userId);
 
-    @EntityGraph(attributePaths = "words")
+    @EntityGraph(attributePaths = {"words", "words.dictionary"})
     Optional<WordCollection> findByIdAndUserId(Long id, Long userId);
 }
