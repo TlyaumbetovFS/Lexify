@@ -1,48 +1,32 @@
-import { useEffect, useRef, useState } from 'react'
 import { ActionIcon, Anchor, Group, Popover, Stack, Text, Tooltip } from '@mantine/core'
 import { Info, Volume2 } from 'lucide-react'
 import { showError } from '../api'
 import type { Word } from '../types'
 
 export function WordPronunciation({ word }: { word: Word }) {
-  const audio = useRef<HTMLAudioElement>(null)
   const details = word.dictionary
-  const [loading, setLoading] = useState(false)
-  const timer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
+  const supported = 'speechSynthesis' in window && 'SpeechSynthesisUtterance' in window
 
-  useEffect(() => {
-    const player = audio.current
-    return () => {
-      clearTimeout(timer.current)
-      player?.pause()
-    }
-  }, [details?.audioUrl])
-
-  async function play() {
-    const player = audio.current
-    if (!player || loading) return
-    document.querySelectorAll('audio').forEach((other) => {
-      if (other !== player) other.pause()
-    })
-    player.currentTime = 0
-    setLoading(true)
-    let timedOut = false
-    timer.current = setTimeout(() => {
-      timedOut = true
-      player.pause()
-      setLoading(false)
-      showError(new Error('Аудиосервер не ответил. Попробуйте позже.'))
-    }, 10000)
-    try {
-      await player.play()
-    } catch (error) {
-      if (!timedOut && !(error instanceof DOMException && error.name === 'AbortError')) {
-        showError(new Error('Запись пока недоступна. Попробуйте позже.'))
+  function play() {
+    if (!supported) return
+    const synthesis = window.speechSynthesis
+    synthesis.cancel()
+    const utterance = new SpeechSynthesisUtterance(word.englishText)
+    utterance.lang = 'en-US'
+    utterance.rate = 0.9
+    const voices = synthesis.getVoices()
+    const voice =
+      voices.find((voice) => voice.lang === 'en-US') ??
+      voices.find((voice) => voice.lang.startsWith('en'))
+    if (voice) utterance.voice = voice
+    utterance.onerror = ({ error }) => {
+      if (error !== 'canceled' && error !== 'interrupted') {
+        showError(
+          new Error('Не удалось озвучить слово. Проверьте английский голос в настройках устройства.'),
+        )
       }
-    } finally {
-      clearTimeout(timer.current)
-      setLoading(false)
     }
+    synthesis.speak(utterance)
   }
 
   return (
@@ -53,23 +37,19 @@ export function WordPronunciation({ word }: { word: Word }) {
         </Text>
       )}
       <Tooltip
-        label={details?.audioUrl ? 'Послушать произношение' : 'Для этого слова пока нет записи'}
+        label={supported ? 'Послушать произношение' : 'Браузер не поддерживает озвучку'}
       >
         <ActionIcon
           variant="subtle"
           size="sm"
-          disabled={!details?.audioUrl}
-          loading={loading}
+          disabled={!supported}
           aria-label={`Произношение ${word.englishText}`}
           onClick={play}
         >
           <Volume2 size={17} />
         </ActionIcon>
       </Tooltip>
-      {(details?.sourceUrl ||
-        details?.audioSourceUrl ||
-        details?.licenseUrl ||
-        details?.audioLicenseUrl) && (
+      {(details?.sourceUrl || details?.licenseUrl) && (
         <Popover width={245} position="bottom-start" withArrow shadow="md">
           <Popover.Target>
             <ActionIcon
@@ -106,31 +86,10 @@ export function WordPronunciation({ word }: { word: Word }) {
                   Лицензия словаря
                 </Anchor>
               )}
-              {details.audioSourceUrl && (
-                <Anchor
-                  size="xs"
-                  href={details.audioSourceUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  Источник аудиозаписи
-                </Anchor>
-              )}
-              {details.audioLicenseUrl && (
-                <Anchor
-                  size="xs"
-                  href={details.audioLicenseUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  Лицензия аудиозаписи
-                </Anchor>
-              )}
             </Stack>
           </Popover.Dropdown>
         </Popover>
       )}
-      {details?.audioUrl && <audio ref={audio} src={details.audioUrl} preload="none" />}
     </Group>
   )
 }

@@ -422,6 +422,26 @@ p {
   white-space: pre-wrap;
   overflow-wrap: anywhere;
 }
+.chat-word {
+  padding: 0;
+  border: 0;
+  border-radius: 3px;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+  max-width: 100%;
+  overflow-wrap: anywhere;
+}
+.chat-word:hover,
+.chat-word:focus-visible {
+  text-decoration: underline dotted;
+  text-underline-offset: 3px;
+}
+.chat-word:focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: 2px;
+}
 .message-time {
   color: #98a1b3;
 }

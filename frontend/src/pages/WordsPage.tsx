@@ -135,7 +135,7 @@ export function WordsPage({ api }: { api: Api }) {
                         try {
                           const saved = await api<Word>(`/words/${word.id}/enrich`, 'POST')
                           words.reload()
-                          const available = saved.dictionary?.phonetic || saved.dictionary?.audioUrl
+                          const available = saved.dictionary?.phonetic || saved.example
                           notifications.show({
                             title: 'Словарные данные',
                             message: available

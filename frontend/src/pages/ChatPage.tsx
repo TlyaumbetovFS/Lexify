@@ -32,6 +32,7 @@ import {
 } from 'lucide-react'
 import { showError } from '../api'
 import { DetailsModal } from '../components/DetailsModal'
+import { TranslatableMessage } from '../components/TranslatableMessage'
 import { confirmDelete, EmptyState, LoadError } from '../components/Feedback'
 import { useChat } from '../hooks/useChat'
 import { useResource } from '../hooks/useResource'
@@ -54,6 +55,7 @@ export function ChatPage({ api, session }: { api: Api; session: Session }) {
     roomId ? `/rooms/${roomId}/messages?page=${page}&size=50` : null,
   )
   const bottom = useRef<HTMLDivElement>(null)
+  const translations = useRef(new Map<string, Promise<string>>())
   const isOwner = room?.ownerId === session.userId
   const isModerator = room?.moderatorIds.includes(session.userId)
 
@@ -123,6 +125,20 @@ export function ChatPage({ api, session }: { api: Api; session: Session }) {
       setPending(null)
       showError(error)
     }
+  }
+
+  function translateWord(text: string) {
+    const word = text.toLowerCase().replaceAll('’', "'")
+    const cached = translations.current.get(word)
+    if (cached) return cached
+    const result = api<{ translatedText: string }>('/translations', 'POST', { text: word })
+      .then((response) => response.translatedText)
+      .catch((error) => {
+        translations.current.delete(word)
+        throw error
+      })
+    translations.current.set(word, result)
+    return result
   }
 
   return (
@@ -343,9 +359,11 @@ export function ChatPage({ api, session }: { api: Api; session: Session }) {
                                   )}
                                 </Group>
                                 <div className="message-bubble">
-                                  <Text size="sm" className="message-text">
-                                    {message.text}
-                                  </Text>
+                                  <TranslatableMessage
+                                    key={message.text}
+                                    text={message.text}
+                                    translate={translateWord}
+                                  />
                                   <Group justify="space-between" gap="sm" mt={4}>
                                     <Text size="10px" className="message-time">
                                       {new Date(message.createdAt).toLocaleTimeString('ru-RU', {
@@ -459,7 +477,8 @@ export function ChatPage({ api, session }: { api: Api; session: Session }) {
                     </ActionIcon>
                   </Group>
                   <Text size="10px" c="dimmed" mt={7}>
-                    Enter — отправить · Shift + Enter — новая строка
+                    Enter — отправить · Shift + Enter — новая строка. Нажми на английское слово
+                    для перевода.
                   </Text>
                 </form>
               </>
