@@ -1,0 +1,11 @@
+.git
+.gradle
+build
+frontend/node_modules
+frontend/dist
+frontend/dist-ssr
+.env
+.env.*
+.idea
+.vscode
+**/.DS_Store

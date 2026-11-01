@@ -31,30 +31,27 @@ service      — бизнес-логика
 загрузка данных и подключение чата — в `src/hooks`. Запросы и типы DTO находятся
 в `src/api.ts` и `src/types.ts`, оформление — в `src/styles.css`.
 
-## Запуск
+## Запуск через Docker
 
-Нужны Docker Compose и JDK 17 или новее для запуска Gradle.
-Gradle автоматически загрузит JDK 25 для сборки и запуска приложения.
+Нужен только Docker с Compose. Node.js, Java и Gradle на компьютере не требуются.
 
-```sh
-docker compose up -d --wait
-```
-
-Один раз создайте локальный JWT-ключ:
+Если `.env` ещё нет, один раз создайте локальный JWT-ключ:
 
 ```sh
 echo "JWT_SECRET=$(openssl rand -base64 32)" > .env
 chmod 600 .env
 ```
 
-Загрузите переменные и запустите приложение:
+Соберите и запустите приложение:
 
 ```sh
-set -a
-. ./.env
-set +a
-./gradlew bootRun
+docker compose up --build -d --wait
 ```
+
+Интерфейс и API доступны на `http://localhost:8080`.
+Compose запускает приложение, PostgreSQL и LibreTranslate.
+Dockerfile собирает клиент, запускает тесты и включает готовый интерфейс в JAR.
+Приложение стартует после готовности базы и переводчика.
 
 Файл `.env` исключён из Git. Используйте один и тот же ключ между запусками;
 после смены ключа ранее выданные токены перестанут работать.
@@ -65,6 +62,15 @@ set +a
 ```sh
 docker compose logs -f libretranslate
 ```
+
+Логи приложения и остановка:
+
+```sh
+docker compose logs -f app
+docker compose down
+```
+
+База данных и модели перевода сохраняются в именованных Docker volumes.
 
 Проверка приложения:
 
@@ -88,6 +94,20 @@ PostgreSQL доступен на `localhost:5432`, база, пользоват�
 (случайный ключ минимум 32 байта в Base64). При смене учётных данных задавайте одинаковые
 значения для приложения и Compose. Учётные данные существующей базы при смене
 переменных Compose автоматически не обновляются.
+
+## Запуск для разработки без Docker-приложения
+
+Нужен JDK 17 или новее для запуска Gradle. Gradle автоматически загрузит JDK 25.
+Базу и переводчик оставьте в Docker, приложение запускайте из IDE или через Gradle:
+
+```sh
+docker compose stop app
+docker compose up -d --wait postgres libretranslate
+set -a
+. ./.env
+set +a
+./gradlew bootRun
+```
 
 ## Сборка
 
