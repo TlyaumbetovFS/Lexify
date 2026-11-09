@@ -1,38 +1,37 @@
-import { useCallback, useEffect } from 'react'
+import { lazy, Suspense, useCallback, useEffect } from 'react'
 import {
   ActionIcon,
   AppShell,
   Avatar,
-  Badge,
   Burger,
   CloseButton,
   Group,
+  Loader,
   NavLink,
   Stack,
   Text,
   Tooltip,
 } from '@mantine/core'
 import { useDisclosure, useHash, useSessionStorage } from '@mantine/hooks'
-import {
-  BookOpen,
-  ChevronRight,
-  Folder,
-  Languages,
-  LogOut,
-  MessageCircle,
-  Sparkles,
-} from 'lucide-react'
+import { BookOpen, ChevronRight, Folder, LogOut, MessageCircle } from 'lucide-react'
 import { ApiError, request, showError } from './api'
 import { AuthPage } from './pages/AuthPage'
-import { WordsPage } from './pages/WordsPage'
-import { CollectionsPage } from './pages/CollectionsPage'
-import { ChatPage } from './pages/ChatPage'
 import type { Api, Session } from './types'
+
+const WordsPage = lazy(() =>
+  import('./pages/WordsPage').then((module) => ({ default: module.WordsPage })),
+)
+const CollectionsPage = lazy(() =>
+  import('./pages/CollectionsPage').then((module) => ({ default: module.CollectionsPage })),
+)
+const ChatPage = lazy(() =>
+  import('./pages/ChatPage').then((module) => ({ default: module.ChatPage })),
+)
 
 const pages = [
   { id: 'dictionary', label: 'Мой словарь', icon: BookOpen },
   { id: 'collections', label: 'Подборки', icon: Folder },
-  { id: 'chat', label: 'Разговорные комнаты', icon: MessageCircle },
+  { id: 'chat', label: 'Чаты', icon: MessageCircle },
 ]
 
 export default function App() {
@@ -96,9 +95,6 @@ export default function App() {
           <CloseButton hiddenFrom="md" ml="auto" onClick={close} aria-label="Закрыть навигацию" />
         </div>
         <div className="sidebar-menu">
-          <Text className="eyebrow" c="dimmed" mb="md">
-            ТВОЁ ПРОСТРАНСТВО
-          </Text>
           <Stack gap={6}>
             {pages.map((page) => (
               <NavLink
@@ -116,26 +112,6 @@ export default function App() {
           </Stack>
         </div>
         <div className="sidebar-bottom">
-          <div className="sidebar-note">
-            <Sparkles size={19} />
-            <Text fw={650} size="sm" mt="sm">
-              В своём ритме
-            </Text>
-            <Text size="xs" c="dimmed" mt={5}>
-              Одно новое слово сегодня — чуть больше уверенности завтра.
-            </Text>
-          </div>
-          <Group gap="xs" mt="xl" justify="space-between">
-            <Group gap={7}>
-              <Languages size={16} />
-              <Text size="xs" fw={600}>
-                English ↔ Русский
-              </Text>
-            </Group>
-            <Badge size="xs" variant="light">
-              RU / EN
-            </Badge>
-          </Group>
           <Text size="xs" c="dimmed" mt="sm">
             Ваш ID: {session.userId}
           </Text>
@@ -152,10 +128,6 @@ export default function App() {
               size="sm"
               aria-label="Открыть навигацию"
             />
-            <Text size="sm" c="dimmed" visibleFrom="sm">
-              Личное пространство
-            </Text>
-            <ChevronRight size={13} className="breadcrumb-arrow" />
             <Text size="sm" fw={600}>
               {current.label}
             </Text>
@@ -181,10 +153,18 @@ export default function App() {
         </Group>
       </AppShell.Header>
       <AppShell.Main>
-        <div className={`main-content ${current.id === 'chat' ? 'main-chat' : ''}`}>
-          {current.id === 'dictionary' && <WordsPage api={api} />}
-          {current.id === 'collections' && <CollectionsPage api={api} />}
-          {current.id === 'chat' && <ChatPage api={api} session={session} />}
+        <div className="main-content">
+          <Suspense
+            fallback={
+              <Group justify="center" p="xl" role="status" aria-label="Загрузка раздела">
+                <Loader />
+              </Group>
+            }
+          >
+            {current.id === 'dictionary' && <WordsPage api={api} />}
+            {current.id === 'collections' && <CollectionsPage api={api} />}
+            {current.id === 'chat' && <ChatPage api={api} session={session} />}
+          </Suspense>
         </div>
       </AppShell.Main>
     </AppShell>

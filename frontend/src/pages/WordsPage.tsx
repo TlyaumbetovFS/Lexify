@@ -18,8 +18,6 @@ import {
 import { useForm } from '@mantine/form'
 import { notifications } from '@mantine/notifications'
 import {
-  ArrowUpRight,
-  BookOpen,
   Ellipsis,
   Pencil,
   Plus,
@@ -29,7 +27,8 @@ import {
 } from 'lucide-react'
 import { showError } from '../api'
 import { WordPronunciation } from '../components/WordPronunciation'
-import { confirmDelete, EmptyState, LoadError } from '../components/Feedback'
+import { EmptyState, LoadError } from '../components/Feedback'
+import { confirmDelete } from '../components/confirmDelete'
 import { useResource } from '../hooks/useResource'
 import type { Api, Word } from '../types'
 
@@ -47,44 +46,15 @@ export function WordsPage({ api }: { api: Api }) {
     <Stack gap={28}>
       <div className="page-heading">
         <div>
-          <Text className="eyebrow" c="blue">
-            СЛОВО ЗА СЛОВОМ
-          </Text>
           <Title order={1}>Мой словарь</Title>
           <Text c="dimmed" size="sm" mt={8}>
-            Всё, что хочется запомнить, — в одном месте.
+            Добавляй слова на русском или английском.
           </Text>
         </div>
         <Button leftSection={<Plus size={18} />} onClick={() => setEditing(null)}>
           Добавить слово
         </Button>
       </div>
-      <section className="vocabulary-banner">
-        <div>
-          <Badge variant="white" color="blue" mb="md">
-            ТВОЙ АНГЛИЙСКИЙ НАЧИНАЕТСЯ ЗДЕСЬ
-          </Badge>
-          <h2>
-            Новые слова.
-            <br />
-            Новые возможности.
-          </h2>
-          <p>
-            Вводи слова на английском или русском.
-            <br />
-            Перевод и словарные подсказки — в одной карточке.
-          </p>
-        </div>
-        <div className="banner-word" aria-hidden="true">
-          <div className="banner-word-top">
-            <BookOpen size={22} />
-            <ArrowUpRight size={20} />
-          </div>
-          <strong>possibility</strong>
-          <span>возможность</span>
-          <div className="banner-word-line" />
-        </div>
-      </section>
       <Group justify="space-between" gap="md">
         <Group gap="sm">
           <Text fw={650}>Все слова</Text>
@@ -113,8 +83,8 @@ export function WordsPage({ api }: { api: Api }) {
       ) : filtered.length ? (
         <SimpleGrid cols={{ base: 1, sm: 2, xl: 3 }} spacing="lg" aria-busy={words.loading}>
           {filtered.map((word) => (
-            <Card key={word.id} className="word-card" padding="xl" radius="lg" withBorder>
-              <Group justify="space-between" mb="lg">
+            <Card key={word.id} className="word-card" padding="md" radius="md" withBorder>
+              <Group justify="space-between" mb="xs">
                 <Badge variant="light" color="blue" size="xs">
                   {word.sourceLanguage === 'en' ? 'EN → RU' : 'RU → EN'}
                 </Badge>
@@ -262,7 +232,7 @@ function WordModal({
             onClose()
             notifications.show({
               title: word ? 'Слово обновлено' : 'Слово в твоём словаре',
-              message: word ? 'Изменения сохранены.' : 'Ещё одна маленькая победа.',
+              message: word ? 'Изменения сохранены.' : 'Перевод сохранён.',
               color: 'blue',
             })
           } catch (error) {

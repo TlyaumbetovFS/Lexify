@@ -2,6 +2,8 @@ package com.lexify.service;
 
 import com.lexify.client.DictionaryClient;
 import com.lexify.dto.DictionaryData;
+import com.lexify.mapper.DictionaryMapper;
+import org.mapstruct.factory.Mappers;
 import com.lexify.model.DictionaryEntry;
 import com.lexify.repository.DictionaryRepository;
 import java.time.Instant;
@@ -29,7 +31,7 @@ class DictionaryServiceTest {
 
     @BeforeEach
     void setUp() {
-        service = new DictionaryService(entries, client);
+        service = new DictionaryService(entries, client, Mappers.getMapper(DictionaryMapper.class));
     }
 
     @Test

@@ -2,17 +2,15 @@ import {
   Alert,
   Anchor,
   Button,
-  Group,
   Paper,
   PasswordInput,
   Stack,
   Text,
   TextInput,
-  ThemeIcon,
   Title,
 } from '@mantine/core'
 import { useForm } from '@mantine/form'
-import { ArrowRight, BookOpen, Check, MessageCircle } from 'lucide-react'
+import { ArrowRight, BookOpen } from 'lucide-react'
 import { useState } from 'react'
 import { request } from '../api'
 import type { Session } from '../types'
@@ -33,48 +31,33 @@ export function AuthPage({ onLogin }: { onLogin: (session: Session) => void }) {
             : null,
     },
   })
+  async function submit(values: typeof form.values) {
+    setBusy(true)
+    setError('')
+    try {
+      const result = await request<{ accessToken: string; expiresIn: number }>(
+        `/auth/${register ? 'register' : 'login'}`,
+        undefined,
+        'POST',
+        { ...values, email: values.email.trim() },
+      )
+      const payload = JSON.parse(
+        atob(result.accessToken.split('.')[1].replace(/-/g, '+').replace(/_/g, '/')),
+      )
+      onLogin({
+        accessToken: result.accessToken,
+        expiresAt: Number(payload.exp) * 1000,
+        email: values.email.trim(),
+        userId: Number(payload.sub),
+      })
+    } catch (error) {
+      setError(error instanceof Error ? error.message : 'Попробуйте ещё раз.')
+    } finally {
+      setBusy(false)
+    }
+  }
   return (
     <main className="auth-layout">
-      <section className="auth-story">
-        <div className="brand">
-          <span className="brand-mark">
-            <BookOpen size={23} />
-          </span>
-          <span>
-            lexify<span className="brand-dot">.</span>
-          </span>
-        </div>
-        <div className="auth-pitch">
-          <div className="eyebrow">ТВОЙ АНГЛИЙСКИЙ. ТВОЙ РИТМ.</div>
-          <h1>
-            Каждое слово —<br />
-            новая возможность<span>.</span>
-          </h1>
-          <p>Собирай полезные слова, находи им место в своей жизни и общайся на английском.</p>
-          <Stack gap="lg" mt={36}>
-            {[
-              'Личный словарь с переводом',
-              'Подборки на любые темы',
-              'Живое общение в комнатах',
-            ].map((text) => (
-              <Group key={text} gap="sm">
-                <ThemeIcon variant="white" radius="xl" size={24}>
-                  <Check size={14} />
-                </ThemeIcon>
-                <Text size="sm">{text}</Text>
-              </Group>
-            ))}
-          </Stack>
-        </div>
-        <div className="auth-word">
-          <span>serendipity</span>
-          <Text size="sm">счастливая случайность</Text>
-          <MessageCircle className="auth-word-icon" size={44} strokeWidth={1.3} />
-        </div>
-        <Text size="xs" className="auth-footer">
-          Little by little, a little becomes a lot.
-        </Text>
-      </section>
       <section className="auth-form">
         <Paper w="100%" maw={390} p="xs">
           <div className="brand auth-mobile-brand">
@@ -85,44 +68,15 @@ export function AuthPage({ onLogin }: { onLogin: (session: Session) => void }) {
               lexify<span className="brand-dot">.</span>
             </span>
           </div>
-          <Text size="sm" c="blue" fw={650} mb="xs">
-            LET’S GET STARTED
-          </Text>
           <Title order={2} mb="xs">
-            {register ? 'Начнём знакомство' : 'С возвращением'}
+            {register ? 'Регистрация' : 'Вход'}
           </Title>
           <Text c="dimmed" size="sm" mb={32}>
             {register
-              ? 'Создай свой словарь — первое слово уже рядом.'
-              : 'Твои слова и разговоры ждут тебя.'}
+              ? 'Создай аккаунт для словаря и чатов.'
+              : 'Войди, чтобы продолжить учить слова.'}
           </Text>
-          <form
-            onSubmit={form.onSubmit(async (values) => {
-              setBusy(true)
-              setError('')
-              try {
-                const result = await request<{ accessToken: string; expiresIn: number }>(
-                  `/auth/${register ? 'register' : 'login'}`,
-                  undefined,
-                  'POST',
-                  { ...values, email: values.email.trim() },
-                )
-                const payload = JSON.parse(
-                  atob(result.accessToken.split('.')[1].replace(/-/g, '+').replace(/_/g, '/')),
-                )
-                onLogin({
-                  accessToken: result.accessToken,
-                  expiresAt: Date.now() + result.expiresIn * 1000,
-                  email: values.email.trim(),
-                  userId: Number(payload.sub),
-                })
-              } catch (error) {
-                setError(error instanceof Error ? error.message : 'Попробуйте ещё раз.')
-              } finally {
-                setBusy(false)
-              }
-            })}
-          >
+          <form onSubmit={form.onSubmit(submit)}>
             <Stack gap="lg">
               {error && (
                 <Alert color="red" role="alert">

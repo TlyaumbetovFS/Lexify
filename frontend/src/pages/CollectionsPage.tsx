@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import {
   ActionIcon,
   Badge,
@@ -19,30 +19,23 @@ import { Ellipsis, Folder, FolderOpen, Pencil, Plus, Trash2, X } from 'lucide-re
 import { showError } from '../api'
 import { DetailsModal } from '../components/DetailsModal'
 import { WordPronunciation } from '../components/WordPronunciation'
-import { confirmDelete, EmptyState, LoadError } from '../components/Feedback'
+import { EmptyState, LoadError } from '../components/Feedback'
+import { confirmDelete } from '../components/confirmDelete'
 import { useResource } from '../hooks/useResource'
 import type { Api, Collection, Word } from '../types'
 
 export function CollectionsPage({ api }: { api: Api }) {
   const collections = useResource<Collection[]>(api, '/collections')
-  const vocabulary = useResource<Word[]>(api, '/words')
   const [selectedId, setSelectedId] = useState<number | null>(null)
   const [editing, setEditing] = useState<Collection | null>()
   const [adding, setAdding] = useState(false)
-  const selected = collections.data?.find((item) => item.id === selectedId)
-
-  useEffect(() => {
-    if (collections.data && !collections.data.some((item) => item.id === selectedId))
-      setSelectedId(collections.data[0]?.id ?? null)
-  }, [collections.data, selectedId])
+  const vocabulary = useResource<Word[]>(api, adding ? '/words' : null)
+  const selected = collections.data?.find((item) => item.id === selectedId) ?? collections.data?.[0]
 
   return (
     <Stack gap={28}>
       <div className="page-heading">
         <div>
-          <Text className="eyebrow" c="blue">
-            У КАЖДОГО СЛОВА СВОЁ МЕСТО
-          </Text>
           <Title order={1}>Подборки</Title>
           <Text c="dimmed" size="sm" mt={8}>
             Собирай слова по темам, планам и интересам.
@@ -80,11 +73,12 @@ export function CollectionsPage({ api }: { api: Api }) {
               {collections.data.map((item) => (
                 <UnstyledButton
                   key={item.id}
-                  className={`collection-link ${selectedId === item.id ? 'is-selected' : ''}`}
+                  aria-pressed={selected?.id === item.id}
+                  className={`collection-link ${selected?.id === item.id ? 'is-selected' : ''}`}
                   onClick={() => setSelectedId(item.id)}
                 >
                   <div className="folder-icon">
-                    {selectedId === item.id ? <FolderOpen size={22} /> : <Folder size={22} />}
+                    {selected?.id === item.id ? <FolderOpen size={22} /> : <Folder size={22} />}
                   </div>
                   <div>
                     <Text fw={600} size="sm" lineClamp={1}>

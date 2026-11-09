@@ -3,6 +3,7 @@ package com.lexify.service;
 import com.lexify.client.DictionaryClient;
 import com.lexify.dto.DictionaryData;
 import com.lexify.model.DictionaryEntry;
+import com.lexify.mapper.DictionaryMapper;
 import com.lexify.repository.DictionaryRepository;
 import java.time.Duration;
 import java.time.Instant;
@@ -16,6 +17,7 @@ public class DictionaryService {
 
     private final DictionaryRepository entries;
     private final DictionaryClient client;
+    private final DictionaryMapper mapper;
 
     public synchronized DictionaryEntry lookup(String englishText) {
         var key = englishText.strip().toLowerCase(Locale.ROOT);
@@ -32,16 +34,7 @@ public class DictionaryService {
             return cached.get();
         }
         var data = result.orElseGet(DictionaryData::empty);
-        var entry = cached.orElseGet(DictionaryEntry::new);
-        entry.setWord(key);
-        entry.setExample(data.example());
-        entry.setPhonetic(data.phonetic());
-        entry.setAudioUrl(data.audioUrl());
-        entry.setSourceUrl(data.sourceUrl());
-        entry.setLicenseUrl(data.licenseUrl());
-        entry.setAudioSourceUrl(data.audioSourceUrl());
-        entry.setAudioLicenseUrl(data.audioLicenseUrl());
-        entry.setCheckedAt(Instant.now());
+        var entry = mapper.toEntry(data, key, Instant.now());
         return entries.saveAndFlush(entry);
     }
 }

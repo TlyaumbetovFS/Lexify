@@ -1,7 +1,5 @@
 import { Alert, Button, Center, Stack, Text, ThemeIcon } from '@mantine/core'
-import { modals } from '@mantine/modals'
 import { BookOpen, RefreshCw } from 'lucide-react'
-import { showError } from '../api'
 
 export function EmptyState({
   title,
@@ -46,18 +44,4 @@ export function LoadError({ message, retry }: { message: string; retry: () => vo
       </Button>
     </Alert>
   )
-}
-
-export function confirmDelete(title: string, description: string, action: () => Promise<void>) {
-  modals.openConfirmModal({
-    title,
-    children: (
-      <Text size="sm" c="dimmed">
-        {description}
-      </Text>
-    ),
-    labels: { confirm: 'Удалить', cancel: 'Отмена' },
-    confirmProps: { color: 'red' },
-    onConfirm: () => action().catch(showError),
-  })
 }

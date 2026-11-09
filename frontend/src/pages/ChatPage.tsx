@@ -2,13 +2,10 @@ import { useEffect, useRef, useState } from 'react'
 import {
   ActionIcon,
   Avatar,
-  Badge,
   Button,
   Card,
   Group,
   Menu,
-  Modal,
-  NumberInput,
   ScrollArea,
   Skeleton,
   Stack,
@@ -28,12 +25,13 @@ import {
   Send,
   ShieldCheck,
   Trash2,
-  X,
 } from 'lucide-react'
 import { showError } from '../api'
+import { EditMessage, ModeratorsModal } from '../components/ChatModals'
 import { DetailsModal } from '../components/DetailsModal'
 import { TranslatableMessage } from '../components/TranslatableMessage'
-import { confirmDelete, EmptyState, LoadError } from '../components/Feedback'
+import { EmptyState, LoadError } from '../components/Feedback'
+import { confirmDelete } from '../components/confirmDelete'
 import { useChat } from '../hooks/useChat'
 import { useResource } from '../hooks/useResource'
 import type { Api, ChatEvent, ChatMessage, Room, Session } from '../types'
@@ -59,12 +57,15 @@ export function ChatPage({ api, session }: { api: Api; session: Session }) {
   const isOwner = room?.ownerId === session.userId
   const isModerator = room?.moderatorIds.includes(session.userId)
 
-  useEffect(() => {
-    if (rooms.data && !rooms.data.some((item) => item.id === roomId)) {
-      setRoomId(rooms.data[0]?.id ?? null)
-      setPage(0)
-    }
-  }, [rooms.data, roomId])
+  const availableRoomId = room?.id ?? rooms.data?.[0]?.id ?? null
+  if (!rooms.loading && rooms.data && availableRoomId !== roomId) {
+    setRoomId(availableRoomId)
+    setPage(0)
+    setDraft('')
+    setPending(null)
+    setNewMessages(false)
+    setModerating(false)
+  }
 
   const chat = useChat(
     session.accessToken,
@@ -95,6 +96,15 @@ export function ChatPage({ api, session }: { api: Api; session: Session }) {
       showError(error)
     },
   )
+
+  const reloadRooms = rooms.reload
+  const reloadHistory = history.reload
+  useEffect(() => {
+    if (chat.connected) {
+      reloadRooms()
+      reloadHistory()
+    }
+  }, [chat.connected, reloadRooms, reloadHistory])
 
   useEffect(() => {
     if (page === 0) bottom.current?.scrollIntoView({ block: 'end', behavior: 'smooth' })
@@ -145,12 +155,9 @@ export function ChatPage({ api, session }: { api: Api; session: Session }) {
     <Stack gap={24}>
       <div className="page-heading">
         <div>
-          <Text className="eyebrow" c="blue">
-            АНГЛИЙСКИЙ ОБЪЕДИНЯЕТ
-          </Text>
-          <Title order={1}>Разговорные комнаты</Title>
+          <Title order={1}>Чаты</Title>
           <Text c="dimmed" size="sm" mt={8}>
-            Слова становятся живыми, когда мы общаемся.
+            Нажми на английское слово в сообщении, чтобы увидеть перевод.
           </Text>
         </div>
         <Button leftSection={<Plus size={18} />} onClick={() => setEditingRoom(null)}>
@@ -196,6 +203,7 @@ export function ChatPage({ api, session }: { api: Api; session: Session }) {
                   .map((item) => (
                     <UnstyledButton
                       key={item.id}
+                      aria-pressed={roomId === item.id}
                       className={`room-link ${roomId === item.id ? 'is-selected' : ''}`}
                       onClick={() => {
                         setRoomId(item.id)
@@ -520,141 +528,5 @@ export function ChatPage({ api, session }: { api: Api; session: Session }) {
         />
       )}
     </Stack>
-  )
-}
-
-function EditMessage({
-  api,
-  message,
-  onClose,
-  onSaved,
-}: {
-  api: Api
-  message: ChatMessage
-  onClose: () => void
-  onSaved: () => void
-}) {
-  const [text, setText] = useState(message.text)
-  const [busy, setBusy] = useState(false)
-  return (
-    <Modal opened title="Редактировать сообщение" onClose={() => !busy && onClose()} centered>
-      <form
-        onSubmit={async (event) => {
-          event.preventDefault()
-          setBusy(true)
-          try {
-            await api(`/rooms/${message.roomId}/messages/${message.id}`, 'PUT', {
-              text: text.trim(),
-            })
-            onSaved()
-            onClose()
-          } catch (error) {
-            showError(error)
-          } finally {
-            setBusy(false)
-          }
-        }}
-      >
-        <Stack>
-          <Textarea
-            label="Сообщение"
-            value={text}
-            onChange={(event) => setText(event.currentTarget.value)}
-            maxLength={2000}
-            minRows={3}
-            autoFocus
-            required
-            disabled={busy}
-          />
-          <Group justify="flex-end">
-            <Button variant="default" onClick={onClose} disabled={busy}>
-              Отмена
-            </Button>
-            <Button type="submit" loading={busy} disabled={!text.trim()}>
-              Сохранить
-            </Button>
-          </Group>
-        </Stack>
-      </form>
-    </Modal>
-  )
-}
-
-function ModeratorsModal({
-  api,
-  room,
-  onClose,
-  onSaved,
-}: {
-  api: Api
-  room: Room
-  onClose: () => void
-  onSaved: () => void
-}) {
-  const [id, setId] = useState<string | number>('')
-  const [busy, setBusy] = useState(false)
-  async function change(userId: number, method: string) {
-    setBusy(true)
-    try {
-      await api(`/rooms/${room.id}/moderators/${userId}`, method)
-      setId('')
-      onSaved()
-    } catch (error) {
-      showError(error)
-    } finally {
-      setBusy(false)
-    }
-  }
-  return (
-    <Modal opened centered title="Модераторы комнаты" onClose={() => !busy && onClose()}>
-      <Stack>
-        <Text size="sm" c="dimmed">
-          Модераторы могут удалять сообщения в этой комнате. ID участника виден рядом с его
-          сообщениями; свой ID можно найти в меню слева.
-        </Text>
-        {room.moderatorIds.map((userId) => (
-          <Group key={userId} justify="space-between">
-            <Group gap="xs">
-              <ShieldCheck size={17} color="#3775f6" />
-              <Text size="sm">Участник #{userId}</Text>
-              {userId === room.ownerId && (
-                <Badge size="xs" variant="light">
-                  Создатель
-                </Badge>
-              )}
-            </Group>
-            {userId !== room.ownerId && (
-              <ActionIcon
-                variant="subtle"
-                color="gray"
-                aria-label={`Снять модератора ${userId}`}
-                disabled={busy}
-                onClick={() => change(userId, 'DELETE')}
-              >
-                <X size={15} />
-              </ActionIcon>
-            )}
-          </Group>
-        ))}
-        <NumberInput
-          label="ID пользователя"
-          placeholder="Например, 12"
-          min={1}
-          max={Number.MAX_SAFE_INTEGER}
-          allowDecimal={false}
-          allowNegative={false}
-          value={id}
-          onChange={setId}
-          disabled={busy}
-        />
-        <Button
-          loading={busy}
-          disabled={!Number.isSafeInteger(Number(id)) || Number(id) < 1}
-          onClick={() => change(Number(id), 'PUT')}
-        >
-          Назначить модератором
-        </Button>
-      </Stack>
-    </Modal>
   )
 }
