@@ -64,18 +64,10 @@ public class DictionaryClient {
             return DictionaryData.empty();
         }
         var entries = Arrays.stream(response).filter(Objects::nonNull).toList();
-        var phonetics = entries.stream().flatMap(entry -> stream(entry.phonetics())).toList();
-        var pronunciation = phonetics.stream()
-                .filter(value -> text(value.text(), 200) != null && httpsUrl(value.audio()) != null)
-                .findFirst()
-                .orElseGet(() -> phonetics.stream().filter(value -> httpsUrl(value.audio()) != null)
-                        .findFirst().orElse(null));
-        var phonetic = pronunciation == null ? null : text(pronunciation.text(), 200);
-        if (phonetic == null) {
-            phonetic = phonetics.stream().map(value -> text(value.text(), 200)).filter(Objects::nonNull)
-                    .findFirst().orElseGet(() -> entries.stream().map(value -> text(value.phonetic(), 200))
-                            .filter(Objects::nonNull).findFirst().orElse(null));
-        }
+        var phonetic = entries.stream().flatMap(entry -> stream(entry.phonetics()))
+                .map(value -> text(value.text(), 200)).filter(Objects::nonNull)
+                .findFirst().orElseGet(() -> entries.stream().map(value -> text(value.phonetic(), 200))
+                        .filter(Objects::nonNull).findFirst().orElse(null));
         var example = entries.stream().flatMap(entry -> stream(entry.meanings()))
                 .flatMap(meaning -> stream(meaning.definitions()))
                 .map(definition -> text(definition.example(), 1000)).filter(Objects::nonNull)
@@ -84,10 +76,7 @@ public class DictionaryClient {
                 .map(this::httpsUrl).filter(Objects::nonNull).findFirst().orElse(null);
         var license = entries.stream().map(DictionaryResponse::license).filter(Objects::nonNull)
                 .map(value -> httpsUrl(value.url())).filter(Objects::nonNull).findFirst().orElse(null);
-        return new DictionaryData(example, phonetic,
-                pronunciation == null ? null : httpsUrl(pronunciation.audio()), source, license,
-                pronunciation == null ? null : httpsUrl(pronunciation.sourceUrl()),
-                pronunciation == null || pronunciation.license() == null ? null : httpsUrl(pronunciation.license().url()));
+        return new DictionaryData(example, phonetic, source, license);
     }
 
     private <T> Stream<T> stream(List<T> values) {

@@ -7,11 +7,8 @@ export interface Session {
 
 export interface DictionaryDetails {
   phonetic: string | null
-  audioUrl: string | null
   sourceUrl: string | null
   licenseUrl: string | null
-  audioSourceUrl: string | null
-  audioLicenseUrl: string | null
 }
 
 export interface Word {

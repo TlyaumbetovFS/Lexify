@@ -14,9 +14,7 @@ public class ChatEventService {
 
     @TransactionalEventListener
     public void publish(ChatEvent event) {
-        messaging.convertAndSend("/topic/rooms/" + event.roomId(), event);
-        if (event.message() == null) {
-            messaging.convertAndSend("/topic/rooms", event);
-        }
+        var destination = event.message() == null ? "/topic/rooms" : "/topic/rooms/" + event.roomId();
+        messaging.convertAndSend(destination, event);
     }
 }

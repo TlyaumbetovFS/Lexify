@@ -55,7 +55,6 @@ class DictionaryServiceTest {
         assertThat(result.getWord()).isEqualTo("hello");
         assertThat(result.getExample()).isEqualTo("Hello, everyone!");
         assertThat(result.getPhonetic()).isEqualTo("/hello/");
-        assertThat(result.getAudioUrl()).isEqualTo("https://example.com/hello.mp3");
         assertThat(result.getCheckedAt()).isNotNull();
     }
 
@@ -135,7 +134,6 @@ class DictionaryServiceTest {
     }
 
     private DictionaryData data() {
-        return new DictionaryData("Hello, everyone!", "/hello/", "https://example.com/hello.mp3",
-                "https://en.wiktionary.org/wiki/hello", null, null, null);
+        return new DictionaryData("Hello, everyone!", "/hello/", "https://en.wiktionary.org/wiki/hello", null);
     }
 }

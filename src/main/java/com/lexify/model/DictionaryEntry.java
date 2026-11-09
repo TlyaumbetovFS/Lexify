@@ -27,24 +27,15 @@ public class DictionaryEntry {
     private String phonetic;
 
     @Column(length = 2000)
-    private String audioUrl;
-
-    @Column(length = 2000)
     private String sourceUrl;
 
     @Column(length = 2000)
     private String licenseUrl;
 
-    @Column(length = 2000)
-    private String audioSourceUrl;
-
-    @Column(length = 2000)
-    private String audioLicenseUrl;
-
     @Column(nullable = false)
     private Instant checkedAt;
 
     public boolean hasContent() {
-        return example != null || phonetic != null || audioUrl != null;
+        return example != null || phonetic != null;
     }
 }

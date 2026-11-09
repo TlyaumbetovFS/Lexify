@@ -58,7 +58,7 @@ class WordServiceTest {
 
         var result = service.create(1L, new WordRequest(" ПрИвЕт ", "Hello, friend!"));
 
-        assertThat(result).isEqualTo(new WordResponse(10L, "привет", "hello", "Hello, friend!", "ru", new DictionaryDetails(null, null, null, null, null, null)));
+        assertThat(result).isEqualTo(new WordResponse(10L, "привет", "hello", "Hello, friend!", "ru", new DictionaryDetails(null, null, null)));
     }
 
     @Test
@@ -149,7 +149,6 @@ class WordServiceTest {
         var entry = entry("hello");
         entry.setExample("Hello, everyone!");
         entry.setPhonetic("/həˈləʊ/");
-        entry.setAudioUrl("https://example.com/hello.mp3");
         when(dictionary.lookup("hello")).thenReturn(entry);
         when(words.saveAndFlush(any())).thenAnswer(invocation -> invocation.getArgument(0));
 
@@ -160,7 +159,6 @@ class WordServiceTest {
         assertThat(result.sourceLanguage()).isEqualTo("en");
         assertThat(result.example()).isEqualTo("Hello, everyone!");
         assertThat(result.dictionary().phonetic()).isEqualTo("/həˈləʊ/");
-        assertThat(result.dictionary().audioUrl()).isEqualTo("https://example.com/hello.mp3");
     }
 
     @Test
@@ -179,7 +177,7 @@ class WordServiceTest {
         var result = service.create(1L, new WordRequest("hello", null));
 
         assertThat(result.example()).isNull();
-        assertThat(result.dictionary().audioUrl()).isNull();
+        assertThat(result.dictionary().phonetic()).isNull();
         assertThat(result.russianText()).isEqualTo("привет");
     }
 

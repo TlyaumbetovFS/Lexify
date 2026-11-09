@@ -8,7 +8,7 @@ public record DictionaryResponse(String phonetic, List<Phonetic> phonetics, List
                                  License license, List<String> sourceUrls) {
 
     @JsonIgnoreProperties(ignoreUnknown = true)
-    public record Phonetic(String text, String audio, String sourceUrl, License license) {
+    public record Phonetic(String text) {
     }
 
     @JsonIgnoreProperties(ignoreUnknown = true)

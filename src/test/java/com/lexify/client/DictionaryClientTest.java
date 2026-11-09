@@ -25,14 +25,15 @@ class DictionaryClientTest {
     }
 
     @Test
-    void extractsExamplePhoneticMatchingAudioAndAttribution() {
+    void extractsExamplePhoneticAndAttributionWithoutAudio() {
         server.expect(requestTo("http://dictionary/api/v2/entries/en/hello"))
                 .andRespond(withSuccess("""
                         [{
                           "word":"hello",
                           "phonetics":[
                             {"audio":"https://example.com/au.mp3"},
-                            {"text":"/həˈləʊ/","audio":"//example.com/uk.mp3",
+                            {"text":"/həˈləʊ/"},
+                            {"text":"/other/","audio":"//example.com/uk.mp3",
                              "sourceUrl":"https://commons.wikimedia.org/wiki/Audio",
                              "license":{"name":"CC BY","url":"https://creativecommons.org/licenses/by/4.0/"}}
                           ],
@@ -47,9 +48,8 @@ class DictionaryClientTest {
 
         assertThat(result.example()).isEqualTo("Hello, everyone!");
         assertThat(result.phonetic()).isEqualTo("/həˈləʊ/");
-        assertThat(result.audioUrl()).isEqualTo("https://example.com/uk.mp3");
         assertThat(result.sourceUrl()).isEqualTo("https://en.wiktionary.org/wiki/hello");
-        assertThat(result.audioLicenseUrl()).isEqualTo("https://creativecommons.org/licenses/by/4.0/");
+        assertThat(result.licenseUrl()).isEqualTo("https://creativecommons.org/licenses/by-sa/4.0/");
         server.verify();
     }
 
@@ -72,7 +72,7 @@ class DictionaryClientTest {
     }
 
     @Test
-    void rejectsUnsafeMediaAndSourceUrls() {
+    void rejectsUnsafeSourceAndLicenseUrls() {
         server.expect(requestTo("http://dictionary/api/v2/entries/en/hello"))
                 .andRespond(withSuccess("""
                         [{"phonetic":"/hello/","phonetics":[{"audio":"javascript:alert(1)"}],
@@ -80,7 +80,6 @@ class DictionaryClientTest {
                         """, MediaType.APPLICATION_JSON));
         var result = client.lookup("hello").orElseThrow();
         assertThat(result.phonetic()).isEqualTo("/hello/");
-        assertThat(result.audioUrl()).isNull();
         assertThat(result.sourceUrl()).isNull();
         assertThat(result.licenseUrl()).isNull();
         server.verify();
