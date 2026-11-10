@@ -50,3 +50,11 @@ export interface ChatEvent {
 }
 
 export type Api = <T>(path: string, method?: string, body?: unknown) => Promise<T>
+
+export interface Statistics {
+  users: number
+  rooms: number
+  messages: number
+  words: number
+  uniqueWords: number
+}

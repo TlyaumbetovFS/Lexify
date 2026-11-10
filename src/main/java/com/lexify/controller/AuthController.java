@@ -3,6 +3,7 @@ package com.lexify.controller;
 import com.lexify.dto.AuthRequest;
 import com.lexify.dto.TokenResponse;
 import com.lexify.service.AuthService;
+import io.swagger.v3.oas.annotations.security.SecurityRequirements;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -13,6 +14,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
+@SecurityRequirements
 @RequestMapping("/api/auth")
 @RequiredArgsConstructor
 public class AuthController {

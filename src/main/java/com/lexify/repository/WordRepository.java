@@ -5,8 +5,12 @@ import java.util.List;
 import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.EntityGraph;
+import org.springframework.data.jpa.repository.Query;
 
 public interface WordRepository extends JpaRepository<Word, Long> {
+
+    @Query("select word.englishText from Word word")
+    List<String> findEnglishTexts();
 
     @EntityGraph(attributePaths = "dictionary")
     List<Word> findByUserIdOrderByIdDesc(Long userId);

@@ -13,7 +13,7 @@ import {
   Tooltip,
 } from '@mantine/core'
 import { useDisclosure, useHash, useSessionStorage } from '@mantine/hooks'
-import { BookOpen, ChevronRight, Folder, LogOut, MessageCircle } from 'lucide-react'
+import { ChartNoAxesColumn, BookOpen, ChevronRight, Folder, LogOut, MessageCircle } from 'lucide-react'
 import { ApiError, request, showError } from './api'
 import { AuthPage } from './pages/AuthPage'
 import type { Api, Session } from './types'
@@ -28,10 +28,15 @@ const ChatPage = lazy(() =>
   import('./pages/ChatPage').then((module) => ({ default: module.ChatPage })),
 )
 
+const StatisticsPage = lazy(() =>
+  import('./pages/StatisticsPage').then((module) => ({ default: module.StatisticsPage })),
+)
+
 const pages = [
   { id: 'dictionary', label: 'Мой словарь', icon: BookOpen },
   { id: 'collections', label: 'Подборки', icon: Folder },
   { id: 'chat', label: 'Чаты', icon: MessageCircle },
+  { id: 'statistics', label: 'Статистика', icon: ChartNoAxesColumn },
 ]
 
 export default function App() {
@@ -164,6 +169,7 @@ export default function App() {
             {current.id === 'dictionary' && <WordsPage api={api} />}
             {current.id === 'collections' && <CollectionsPage api={api} />}
             {current.id === 'chat' && <ChatPage api={api} session={session} />}
+            {current.id === 'statistics' && <StatisticsPage api={api} />}
           </Suspense>
         </div>
       </AppShell.Main>
