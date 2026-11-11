@@ -2,6 +2,7 @@ import {
   Alert,
   Anchor,
   Button,
+  Group,
   Paper,
   PasswordInput,
   Stack,
@@ -13,6 +14,7 @@ import { useForm } from '@mantine/form'
 import { ArrowRight, BookOpen } from 'lucide-react'
 import { useState } from 'react'
 import { request } from '../api'
+import { ThemeToggle } from '../components/ThemeToggle'
 import type { Session } from '../types'
 
 export function AuthPage({ onLogin }: { onLogin: (session: Session) => void }) {
@@ -60,14 +62,17 @@ export function AuthPage({ onLogin }: { onLogin: (session: Session) => void }) {
     <main className="auth-layout">
       <section className="auth-form">
         <Paper w="100%" maw={390} p="xs">
-          <div className="brand auth-mobile-brand">
-            <span className="brand-mark">
-              <BookOpen size={23} />
-            </span>
-            <span>
-              lexify<span className="brand-dot">.</span>
-            </span>
-          </div>
+          <Group justify="space-between" wrap="nowrap" mb={28}>
+            <div className="brand">
+              <span className="brand-mark">
+                <BookOpen size={23} />
+              </span>
+              <span>
+                lexify<span className="brand-dot">.</span>
+              </span>
+            </div>
+            <ThemeToggle />
+          </Group>
           <Title order={2} mb="xs">
             {register ? 'Регистрация' : 'Вход'}
           </Title>

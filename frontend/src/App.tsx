@@ -15,6 +15,7 @@ import {
 import { useDisclosure, useHash, useSessionStorage } from '@mantine/hooks'
 import { ChartNoAxesColumn, BookOpen, ChevronRight, Folder, LogOut, MessageCircle } from 'lucide-react'
 import { ApiError, request, showError } from './api'
+import { ThemeToggle } from './components/ThemeToggle'
 import { AuthPage } from './pages/AuthPage'
 import type { Api, Session } from './types'
 
@@ -144,6 +145,7 @@ export default function App() {
             <Text size="sm" visibleFrom="sm" className="account-email">
               {session.email}
             </Text>
+            <ThemeToggle />
             <Tooltip label="Выйти">
               <ActionIcon
                 variant="subtle"

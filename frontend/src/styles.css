@@ -1,12 +1,24 @@
 :root {
-  color: #19253d;
-  background: #f6f8fc;
+  --lexify-page: light-dark(#f6f8fc, var(--mantine-color-dark-8));
+  --lexify-surface: var(--mantine-color-body);
+  --lexify-subtle: light-dark(#fafbfe, var(--mantine-color-dark-9));
+  --lexify-text: light-dark(#19253d, var(--mantine-color-dark-0));
+  --lexify-muted: light-dark(#657089, var(--mantine-color-dark-2));
+  --lexify-border: light-dark(#e6ebf3, var(--mantine-color-dark-5));
+  --lexify-accent: light-dark(var(--mantine-color-blue-6), var(--mantine-color-blue-3));
+  --lexify-highlight: light-dark(var(--mantine-color-blue-0), #223455);
+  --lexify-highlight-strong: light-dark(var(--mantine-color-blue-1), #2d446e);
+  --lexify-highlight-border: light-dark(var(--mantine-color-blue-2), #466295);
+  --lexify-message-own: light-dark(var(--mantine-color-blue-6), var(--mantine-color-blue-7));
+
+  color: var(--lexify-text);
+  background: var(--lexify-page);
   font-synthesis: none;
   -webkit-font-smoothing: antialiased;
 }
 body {
   margin: 0;
-  color: #19253d;
+  color: var(--lexify-text);
 }
 button,
 a,
@@ -32,7 +44,7 @@ p {
   border-radius: 18px;
 }
 .mantine-Input-input:focus-within {
-  border-color: #3775f6;
+  border-color: var(--lexify-accent);
 }
 .brand {
   display: flex;
@@ -41,10 +53,10 @@ p {
   font-size: 30px;
   font-weight: 800;
   letter-spacing: -1.6px;
-  color: #19253d;
+  color: var(--lexify-text);
 }
 .brand-mark {
-  background: #3775f6;
+  background: var(--mantine-color-blue-5);
   width: 39px;
   height: 39px;
   display: grid;
@@ -53,28 +65,28 @@ p {
   color: white;
 }
 .brand-dot {
-  color: #3775f6;
+  color: var(--lexify-accent);
 }
 .sidebar {
-  background: #fff;
-  border-right: 1px solid #e8edf5;
+  background: var(--lexify-surface);
+  border-right: 1px solid var(--lexify-border);
 }
 .sidebar-brand {
   height: 72px;
   padding: 0 24px;
-  border-bottom: 1px solid #edf0f6;
+  border-bottom: 1px solid var(--lexify-border);
 }
 .sidebar-menu {
   padding: 31px 16px;
 }
-.sidebar-menu > .sidebar-link {
+.sidebar-menu .sidebar-link {
   border-radius: 9px;
   padding: 12px 13px;
-  color: #657089;
+  color: var(--lexify-muted);
 }
 .sidebar-link[data-active] {
-  background: #edf3ff;
-  color: #285ed6;
+  background: var(--lexify-highlight);
+  color: var(--lexify-accent);
 }
 .sidebar-link .mantine-NavLink-label {
   font-size: 13px;
@@ -85,8 +97,8 @@ p {
   margin-top: auto;
 }
 .topbar {
-  background: #fff;
-  border-bottom: 1px solid #e8edf5;
+  background: var(--lexify-surface);
+  border-bottom: 1px solid var(--lexify-border);
 }
 .account-email {
   max-width: 230px;
@@ -95,7 +107,7 @@ p {
   white-space: nowrap;
 }
 .mantine-AppShell-main {
-  background: #f6f8fc;
+  background: var(--lexify-page);
 }
 .main-content {
   max-width: 1450px;
@@ -121,25 +133,25 @@ p {
 }
 .word-card {
   min-height: 180px;
-  border-color: #e6ebf3;
+  border-color: var(--lexify-border);
   box-shadow: 0 2px 4px #19253d02;
   transition:
     box-shadow 0.2s,
     border-color 0.2s;
 }
 .word-card:hover {
-  border-color: #cbdcff;
+  border-color: var(--lexify-highlight-border);
   box-shadow: 0 5px 22px #19253d06;
 }
 .word-translation {
   font-size: 23px;
   font-weight: 700;
   letter-spacing: -0.025em;
-  color: #285ed6;
+  color: var(--lexify-accent);
   overflow-wrap: anywhere;
 }
 .word-example {
-  border-top: 1px solid #edf0f6;
+  border-top: 1px solid var(--lexify-border);
   padding-top: 15px;
   margin-top: 12px;
   flex: 1;
@@ -147,10 +159,10 @@ p {
 }
 .empty-state {
   min-height: 285px;
-  border: 1px dashed #dce4f1;
+  border: 1px dashed var(--lexify-border);
   border-radius: 16px;
   padding: 32px 20px;
-  background: #ffffffb3;
+  background: var(--lexify-subtle);
 }
 .master-detail {
   display: grid;
@@ -167,8 +179,8 @@ p {
   gap: 12px;
   padding: 15px;
   border-radius: 12px;
-  background: #fff;
-  border: 1px solid #e6ebf3;
+  background: var(--lexify-surface);
+  border: 1px solid var(--lexify-border);
   width: 100%;
   transition: border-color 0.15s;
 }
@@ -176,8 +188,8 @@ p {
   min-width: 0;
 }
 .collection-link.is-selected {
-  border-color: #b8cfff;
-  background: #edf3ff;
+  border-color: var(--lexify-highlight-border);
+  background: var(--lexify-highlight);
 }
 .folder-icon {
   display: grid;
@@ -186,15 +198,15 @@ p {
   height: 40px;
   flex-shrink: 0;
   border-radius: 10px;
-  color: #3775f6;
-  background: #edf3ff;
+  color: var(--lexify-accent);
+  background: var(--lexify-highlight);
 }
 .collection-link.is-selected .folder-icon {
-  background: #dce8ff;
+  background: var(--lexify-highlight-strong);
 }
 .collection-detail {
   min-height: 430px;
-  border-color: #e6ebf3;
+  border-color: var(--lexify-border);
 }
 .collection-detail h2 {
   font-size: 23px;
@@ -209,16 +221,16 @@ p {
   height: calc(100dvh - 239px);
   min-height: 500px;
   max-height: 800px;
-  border-color: #e4eaf3;
+  border-color: var(--lexify-border);
 }
 .room-list {
   display: flex;
   flex-direction: column;
   padding: 20px 14px;
-  border-right: 1px solid #edf0f6;
+  border-right: 1px solid var(--lexify-border);
   min-width: 0;
   min-height: 0;
-  background: #fcfdff;
+  background: var(--lexify-subtle);
 }
 .room-scroll {
   flex: 1;
@@ -233,7 +245,7 @@ p {
   align-items: center;
 }
 .room-link.is-selected {
-  background: #edf3ff;
+  background: var(--lexify-highlight);
 }
 .room-link > div:last-child {
   min-width: 0;
@@ -244,13 +256,13 @@ p {
   width: 33px;
   height: 33px;
   border-radius: 9px;
-  color: #5c7dab;
-  background: #edf2fa;
+  color: var(--lexify-accent);
+  background: var(--lexify-highlight);
   flex-shrink: 0;
 }
 .room-link.is-selected .room-hash {
-  color: #3775f6;
-  background: #dce8ff;
+  color: var(--lexify-accent);
+  background: var(--lexify-highlight-strong);
 }
 .conversation {
   display: flex;
@@ -262,7 +274,7 @@ p {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  border-bottom: 1px solid #edf0f6;
+  border-bottom: 1px solid var(--lexify-border);
   padding: 16px 22px;
   min-height: 73px;
 }
@@ -285,7 +297,7 @@ p {
 .messages-scroll {
   flex: 1;
   min-height: 0;
-  background: #fafbfe;
+  background: var(--lexify-subtle);
 }
 .messages-scroll .empty-state {
   min-height: 230px;
@@ -312,7 +324,7 @@ p {
 }
 .message-author {
   margin-bottom: 5px;
-  color: #8993a6;
+  color: var(--lexify-muted);
 }
 .own .message-author {
   justify-content: flex-end;
@@ -320,13 +332,13 @@ p {
 .message-bubble {
   padding: 11px 14px 7px;
   border-radius: 0 13px 13px;
-  background: #fff;
-  border: 1px solid #e9edf5;
+  background: var(--lexify-surface);
+  border: 1px solid var(--lexify-border);
 }
 .own .message-bubble {
-  background: #3775f6;
-  color: #fff;
-  border-color: #3775f6;
+  background: var(--lexify-message-own);
+  color: white;
+  border-color: var(--lexify-message-own);
   border-radius: 13px 0 13px 13px;
 }
 .message-text {
@@ -354,15 +366,15 @@ p {
   outline-offset: 2px;
 }
 .message-time {
-  color: #98a1b3;
+  color: var(--lexify-muted);
 }
 .own .message-time {
-  color: #dce8ff;
+  color: var(--mantine-color-blue-1);
 }
 .composer {
-  border-top: 1px solid #edf0f6;
+  border-top: 1px solid var(--lexify-border);
   padding: 16px 20px 12px;
-  background: #fff;
+  background: var(--lexify-surface);
 }
 .composer-input {
   flex: 1;
@@ -371,25 +383,22 @@ p {
   min-height: 42px;
   font-size: 13px;
   padding-top: 11px;
-  background: #f9fbff;
+  background: var(--lexify-subtle);
 }
 .auth-layout {
   min-height: 100dvh;
   display: grid;
   place-items: center;
-  background: #f6f8fc;
+  background: var(--lexify-page);
   padding: 24px;
 }
 .auth-form {
   width: 100%;
   max-width: 430px;
   padding: 28px;
-  border: 1px solid #e6ebf3;
+  border: 1px solid var(--lexify-border);
   border-radius: 12px;
-  background: #fff;
-}
-.auth-mobile-brand {
-  margin-bottom: 28px;
+  background: var(--lexify-surface);
 }
 @media (max-width: 1200px) {
   .main-content {
@@ -437,7 +446,7 @@ p {
   }
   .room-list {
     border-right: 0;
-    border-bottom: 1px solid #edf0f6;
+    border-bottom: 1px solid var(--lexify-border);
     padding: 12px 15px;
   }
   .room-list > .mantine-Text-root {

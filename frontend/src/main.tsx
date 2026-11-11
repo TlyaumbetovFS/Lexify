@@ -10,9 +10,21 @@ import App from './App'
 
 const theme = createTheme({
   primaryColor: 'blue',
-  primaryShade: 5,
+  primaryShade: { light: 5, dark: 7 },
   defaultRadius: 'md',
   colors: {
+    dark: [
+      '#e6edf8',
+      '#c4cfe0',
+      '#a4b2ca',
+      '#7c8ca8',
+      '#536480',
+      '#35445e',
+      '#25334a',
+      '#192337',
+      '#111a2a',
+      '#0c1321',
+    ],
     blue: [
       '#edf3ff',
       '#dbe7ff',
@@ -38,7 +50,7 @@ const theme = createTheme({
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <MantineProvider theme={theme} forceColorScheme="light">
+    <MantineProvider theme={theme} defaultColorScheme="light">
       <ModalsProvider labels={{ confirm: 'Подтвердить', cancel: 'Отмена' }}>
         <Notifications position="top-right" />
         <App />
