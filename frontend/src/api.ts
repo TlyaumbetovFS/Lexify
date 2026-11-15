@@ -1,4 +1,5 @@
 import { notifications } from '@mantine/notifications'
+import type { AuthResponse, Session } from './types'
 
 const messages: Record<string, string> = {
   'Use a word in Russian or English, without mixing languages':
@@ -45,6 +46,7 @@ export async function request<T>(
     response = await fetch(`/api${path}`, {
       method,
       headers: {
+        ...(path.startsWith('/auth/') ? { 'X-Lexify-Session': '1' } : {}),
         ...(token ? { Authorization: `Bearer ${token}` } : {}),
         ...(body !== undefined ? { 'Content-Type': 'application/json' } : {}),
       },
@@ -58,6 +60,11 @@ export async function request<T>(
     throw new ApiError(response.status, problem.detail)
   }
   return response.status === 204 ? (undefined as T) : response.json()
+}
+
+export async function requestSession(action: 'login' | 'register' | 'refresh', body?: unknown): Promise<Session> {
+  const { expiresIn, ...session } = await request<AuthResponse>(`/auth/${action}`, undefined, 'POST', body)
+  return { ...session, expiresAt: Date.now() + expiresIn * 1000 }
 }
 
 export function showError(error: unknown) {

@@ -1,9 +1,10 @@
-import { lazy, Suspense, useCallback, useEffect } from 'react'
+import { lazy, Suspense } from 'react'
 import {
   ActionIcon,
   AppShell,
   Avatar,
   Burger,
+  Center,
   CloseButton,
   Group,
   Loader,
@@ -12,12 +13,12 @@ import {
   Text,
   Tooltip,
 } from '@mantine/core'
-import { useDisclosure, useHash, useSessionStorage } from '@mantine/hooks'
+import { useDisclosure, useHash } from '@mantine/hooks'
 import { ChartNoAxesColumn, BookOpen, ChevronRight, Folder, LogOut, MessageCircle } from 'lucide-react'
-import { ApiError, request, showError } from './api'
+import { LoadError } from './components/Feedback'
 import { ThemeToggle } from './components/ThemeToggle'
+import { useSession } from './hooks/useSession'
 import { AuthPage } from './pages/AuthPage'
-import type { Api, Session } from './types'
 
 const WordsPage = lazy(() =>
   import('./pages/WordsPage').then((module) => ({ default: module.WordsPage })),
@@ -41,46 +42,20 @@ const pages = [
 ]
 
 export default function App() {
-  const [session, setSession] = useSessionStorage<Session | null>({
-    key: 'lexify-session',
-    defaultValue: null,
-    getInitialValueInEffect: false,
-  })
+  const { session, setSession, restore, restoreError, api, logout, loggingOut } = useSession()
   const [opened, { toggle, close }] = useDisclosure()
   const [hash] = useHash()
   const current = pages.find((page) => `#${page.id}` === hash) ?? pages[0]
-  const token = session?.accessToken
-  const logout = useCallback(() => {
-    setSession(null)
-    close()
-  }, [setSession, close])
 
-  useEffect(() => {
-    if (!session) return
-    const remaining = session.expiresAt - Date.now()
-    if (remaining <= 0) {
-      logout()
-      return
-    }
-    const timeout = setTimeout(logout, remaining)
-    return () => clearTimeout(timeout)
-  }, [session, logout])
-
-  const api: Api = useCallback(
-    async <T,>(path: string, method?: string, body?: unknown) => {
-      try {
-        return await request<T>(path, token, method, body)
-      } catch (error) {
-        if (error instanceof ApiError && error.status === 401) {
-          logout()
-          showError(error)
-        }
-        throw error
-      }
-    },
-    [token, logout],
-  )
-
+  if (session === undefined) {
+    return (
+      <Center mih="100dvh" p="md">
+        {restoreError
+          ? <LoadError message={restoreError} retry={restore} />
+          : <Loader aria-label="Восстанавливаем вход" />}
+      </Center>
+    )
+  }
   if (!session) return <AuthPage onLogin={setSession} />
 
   return (
@@ -150,7 +125,8 @@ export default function App() {
               <ActionIcon
                 variant="subtle"
                 color="gray"
-                onClick={logout}
+                onClick={() => { close(); void logout() }}
+                loading={loggingOut}
                 aria-label="Выйти из аккаунта"
               >
                 <LogOut size={17} />

@@ -6,6 +6,7 @@ services:
       DB_USERNAME: ${DB_USERNAME:-lexify}
       DB_PASSWORD: ${DB_PASSWORD:-lexify}
       JWT_SECRET: ${JWT_SECRET:?Set JWT_SECRET in .env}
+      AUTH_SECURE_COOKIE: ${AUTH_SECURE_COOKIE:-true}
       TRANSLATION_URL: http://libretranslate:5000
       DICTIONARY_URL: ${DICTIONARY_URL:-https://api.dictionaryapi.dev}
     ports:

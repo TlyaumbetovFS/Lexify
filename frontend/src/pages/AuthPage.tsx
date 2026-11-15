@@ -13,7 +13,7 @@ import {
 import { useForm } from '@mantine/form'
 import { ArrowRight, BookOpen } from 'lucide-react'
 import { useState } from 'react'
-import { request } from '../api'
+import { requestSession } from '../api'
 import { ThemeToggle } from '../components/ThemeToggle'
 import type { Session } from '../types'
 
@@ -37,21 +37,10 @@ export function AuthPage({ onLogin }: { onLogin: (session: Session) => void }) {
     setBusy(true)
     setError('')
     try {
-      const result = await request<{ accessToken: string; expiresIn: number }>(
-        `/auth/${register ? 'register' : 'login'}`,
-        undefined,
-        'POST',
-        { ...values, email: values.email.trim() },
-      )
-      const payload = JSON.parse(
-        atob(result.accessToken.split('.')[1].replace(/-/g, '+').replace(/_/g, '/')),
-      )
-      onLogin({
-        accessToken: result.accessToken,
-        expiresAt: Number(payload.exp) * 1000,
+      onLogin(await requestSession(register ? 'register' : 'login', {
+        ...values,
         email: values.email.trim(),
-        userId: Number(payload.sub),
-      })
+      }))
     } catch (error) {
       setError(error instanceof Error ? error.message : 'Попробуйте ещё раз.')
     } finally {

@@ -23,15 +23,23 @@ public class TokenService {
     }
 
     public TokenResponse create(Long userId) {
+        return create(userId, Instant.MAX);
+    }
+
+    public TokenResponse create(Long userId, Instant validUntil) {
         var now = Instant.now();
+        var expiresAt = now.plus(ttl);
+        if (validUntil.isBefore(expiresAt)) {
+            expiresAt = validUntil;
+        }
         var claims = JwtClaimsSet.builder()
                 .issuer("https://lexify.local")
                 .subject(userId.toString())
                 .issuedAt(now)
-                .expiresAt(now.plus(ttl))
+                .expiresAt(expiresAt)
                 .build();
         var header = JwsHeader.with(MacAlgorithm.HS256).build();
         var token = encoder.encode(JwtEncoderParameters.from(header, claims));
-        return new TokenResponse(token.getTokenValue(), "Bearer", ttl.toSeconds());
+        return new TokenResponse(token.getTokenValue(), "Bearer", expiresAt.getEpochSecond() - now.getEpochSecond());
     }
 }

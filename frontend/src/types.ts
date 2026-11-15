@@ -5,6 +5,8 @@ export interface Session {
   userId: number
 }
 
+export type AuthResponse = Omit<Session, 'expiresAt'> & { expiresIn: number }
+
 export interface DictionaryDetails {
   phonetic: string | null
   sourceUrl: string | null

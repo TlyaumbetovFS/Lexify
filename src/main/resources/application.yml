@@ -17,6 +17,8 @@ springdoc:
   paths-to-match: /api/**
 
 app:
+  auth:
+    secure-cookie: ${AUTH_SECURE_COOKIE:true}
   jwt:
     secret: ${JWT_SECRET}
     ttl: 1h

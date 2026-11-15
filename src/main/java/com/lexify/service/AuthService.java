@@ -1,7 +1,6 @@
 package com.lexify.service;
 
 import com.lexify.dto.AuthRequest;
-import com.lexify.dto.TokenResponse;
 import com.lexify.model.User;
 import com.lexify.repository.UserRepository;
 import java.nio.charset.StandardCharsets;
@@ -19,10 +18,8 @@ public class AuthService {
 
     private final UserRepository users;
     private final PasswordEncoder passwords;
-    private final TokenService tokens;
-
     @Transactional
-    public TokenResponse register(AuthRequest request) {
+    public User register(AuthRequest request) {
         var email = normalizeEmail(request.email());
         if (users.existsByEmail(email)) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "Email already registered");
@@ -33,18 +30,18 @@ public class AuthService {
         var user = new User();
         user.setEmail(email);
         user.setPasswordHash(passwords.encode(request.password()));
-        return tokens.create(users.saveAndFlush(user).getId());
+        return users.saveAndFlush(user);
     }
 
     @Transactional(readOnly = true)
-    public TokenResponse login(AuthRequest request) {
+    public User login(AuthRequest request) {
         var user = users.findByEmail(normalizeEmail(request.email()))
                 .orElseThrow(this::invalidCredentials);
         if (request.password().getBytes(StandardCharsets.UTF_8).length > 72
                 || !passwords.matches(request.password(), user.getPasswordHash())) {
             throw invalidCredentials();
         }
-        return tokens.create(user.getId());
+        return user;
     }
 
     private String normalizeEmail(String email) {

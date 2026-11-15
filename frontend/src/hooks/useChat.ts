@@ -11,7 +11,8 @@ export function useChat(
 ) {
   const client = useRef<Client | null>(null)
   const callbacks = useRef({ onEvent, onError })
-  const [connected, setConnected] = useState(false)
+  const [connectedToken, setConnectedToken] = useState<string>()
+  const connected = connectedToken === token
 
   useEffect(() => {
     callbacks.current = { onEvent, onError }
@@ -31,9 +32,11 @@ export function useChat(
           const error = JSON.parse(frame.body)
           callbacks.current.onError(new ApiError(error.status, error.message))
         })
-        setConnected(true)
+        if (client.current === connection) setConnectedToken(token)
       },
-      onWebSocketClose: () => setConnected(false),
+      onWebSocketClose: () => {
+        if (client.current === connection) setConnectedToken(undefined)
+      },
       onStompError: () =>
         callbacks.current.onError(
           new Error('Не удалось подключиться к чату. Обновите страницу или войдите ещё раз.'),

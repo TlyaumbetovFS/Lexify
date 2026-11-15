@@ -30,7 +30,8 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers(HttpMethod.POST, "/api/auth/register", "/api/auth/login").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/auth/register", "/api/auth/login",
+                                "/api/auth/refresh", "/api/auth/logout").permitAll()
                         .requestMatchers(HttpMethod.GET, "/actuator/health", "/ws").permitAll()
                         .requestMatchers(HttpMethod.GET, "/", "/index.html", "/assets/**", "/favicon.svg").permitAll()
                         .requestMatchers(HttpMethod.GET, "/manifest.webmanifest", "/apple-touch-icon.png").permitAll()
