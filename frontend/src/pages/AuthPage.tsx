@@ -61,7 +61,7 @@ export function AuthPage({ onLogin }: { onLogin: (session: Session) => void }) {
   return (
     <main className="auth-layout">
       <section className="auth-form">
-        <Paper w="100%" maw={390} p="xs">
+        <Paper w="100%" maw={390} p="xs" bg="transparent">
           <Group justify="space-between" wrap="nowrap" mb={28}>
             <div className="brand">
               <span className="brand-mark">

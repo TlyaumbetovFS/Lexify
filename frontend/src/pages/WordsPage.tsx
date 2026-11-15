@@ -51,7 +51,12 @@ export function WordsPage({ api }: { api: Api }) {
             Добавляй слова на русском или английском.
           </Text>
         </div>
-        <Button leftSection={<Plus size={18} />} onClick={() => setEditing(null)}>
+        <Button
+          className="add-word-button"
+          size="lg"
+          leftSection={<Plus size={22} />}
+          onClick={() => setEditing(null)}
+        >
           Добавить слово
         </Button>
       </div>
@@ -83,7 +88,7 @@ export function WordsPage({ api }: { api: Api }) {
       ) : filtered.length ? (
         <SimpleGrid cols={{ base: 1, sm: 2, xl: 3 }} spacing="lg" aria-busy={words.loading}>
           {filtered.map((word) => (
-            <Card key={word.id} className="word-card" padding="md" radius="md" withBorder>
+            <Card key={word.id} className="word-card" padding="lg" radius="md" withBorder>
               <Group justify="space-between" mb="xs">
                 <Badge variant="light" color="blue" size="xs">
                   {word.sourceLanguage === 'en' ? 'EN → RU' : 'RU → EN'}
@@ -143,21 +148,15 @@ export function WordsPage({ api }: { api: Api }) {
                 </Menu>
               </Group>
               <Text className="word-translation">{word.englishText}</Text>
-              <WordPronunciation word={word} />
-              <Text size="sm" c="dimmed" mt={4}>
+              <Text mt={4}>
                 {word.russianText}
               </Text>
-              <div className="word-example">
-                <Text
-                  size="sm"
-                  c={word.example ? undefined : 'dimmed'}
-                  fs={word.example ? 'italic' : undefined}
-                >
-                  {word.example
-                    ? `“${word.example}”`
-                    : 'Пример пока не найден. Можно добавить свой.'}
+              <WordPronunciation word={word} />
+              {word.example && (
+                <Text className="word-example" size="sm" c="dimmed" fs="italic">
+                  “{word.example}”
                 </Text>
-              </div>
+              )}
             </Card>
           ))}
         </SimpleGrid>

@@ -32,7 +32,7 @@ export function StatisticsPage({ api }: { api: Api }) {
       ) : (
         <SimpleGrid cols={{ base: 1, xs: 2, lg: 3 }} aria-busy={statistics.loading}>
           {metrics.map(({ key, label }) => (
-            <Card key={key} withBorder padding="lg" radius="md">
+            <Card key={key} className="statistics-card" withBorder padding="lg" radius="md">
               <Text c="dimmed" size="sm">{label}</Text>
               {statistics.data ? (
                 <Text size="32px" fw={700} c="blue" mt="xs">
