@@ -2,6 +2,7 @@ services:
   app:
     build: .
     environment:
+      SERVER_FORWARDHEADERSSTRATEGY: framework
       DB_URL: jdbc:postgresql://postgres:5432/lexify
       DB_USERNAME: ${DB_USERNAME:-lexify}
       DB_PASSWORD: ${DB_PASSWORD:-lexify}
