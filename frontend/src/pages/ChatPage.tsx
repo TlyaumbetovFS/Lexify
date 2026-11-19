@@ -438,7 +438,7 @@ export function ChatPage({ api, session }: { api: Api; session: Session }) {
                           ? 'Вернись к более новым сообщениям кнопкой «Новее».'
                           : 'Здесь ещё нет сообщений. Начни разговор и попрактикуй английский.'
                       }
-                      action={<MessageCircle size={22} color="#3775f6" />}
+                      action={<MessageCircle size={22} color="var(--lexify-accent)" />}
                     />
                   )}
                 </ScrollArea>

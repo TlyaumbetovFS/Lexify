@@ -96,7 +96,7 @@ export function ModeratorsModal({
         {room.moderatorIds.map((userId) => (
           <Group key={userId} justify="space-between">
             <Group gap="xs">
-              <ShieldCheck size={17} color="#3775f6" />
+              <ShieldCheck size={17} color="var(--lexify-accent)" />
               <Text size="sm">Участник #{userId}</Text>
               {userId === room.ownerId && (
                 <Badge size="xs" variant="light">

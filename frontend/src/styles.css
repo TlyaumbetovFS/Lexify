@@ -11,7 +11,10 @@
   --lexify-highlight-strong: #d3e1ff;
   --lexify-highlight-border: #aac1ec;
   --lexify-shadow: 0 2px 10px #17243d0a;
+  --lexify-brand: #3775f6;
+  --lexify-message-own: #204cba;
 
+  color-scheme: light;
   font-synthesis: none;
   -webkit-font-smoothing: antialiased;
 }
@@ -21,21 +24,34 @@
   --mantine-color-text: var(--lexify-text);
   --mantine-color-dimmed: var(--lexify-muted);
   --mantine-color-placeholder: var(--lexify-muted);
+  --mantine-color-anchor: var(--lexify-accent);
+  --mantine-color-body: var(--lexify-surface);
+  --mantine-color-default-border: var(--lexify-border);
 }
 
 :root[data-mantine-color-scheme='dark'] {
-  --lexify-page: #101827;
-  --lexify-nav: #17223a;
-  --lexify-surface: #202d44;
-  --lexify-subtle: #152035;
-  --lexify-text: #edf3ff;
-  --lexify-muted: #acbad2;
-  --lexify-border: #364764;
-  --lexify-accent: #a4c3ff;
-  --lexify-highlight: #233b66;
-  --lexify-highlight-strong: #2e4b7d;
-  --lexify-highlight-border: #526e9f;
-  --lexify-shadow: 0 2px 10px #070c1740;
+  color-scheme: dark;
+  --lexify-page: #0d0f12;
+  --lexify-nav: #15181c;
+  --lexify-surface: #1e2228;
+  --lexify-subtle: #121519;
+  --lexify-text: #eeeef2;
+  --lexify-muted: #afb2bd;
+  --lexify-border: #343840;
+  --lexify-accent: #b4a4f5;
+  --lexify-highlight: #2b263b;
+  --lexify-highlight-strong: #39304e;
+  --lexify-highlight-border: #6d5e91;
+  --lexify-shadow: 0 2px 8px #00000024;
+  --lexify-brand: #6550a5;
+  --lexify-message-own: #6550a5;
+  --mantine-color-default: #252a32;
+  --mantine-color-default-hover: #303640;
+  --mantine-color-default-color: var(--lexify-text);
+  --mantine-color-disabled: #252a32;
+  --mantine-color-disabled-color: #949aa6;
+  --mantine-color-disabled-border: var(--lexify-border);
+
 }
 
 body {
@@ -83,7 +99,7 @@ p {
   color: var(--lexify-text);
 }
 .brand-mark {
-  background: var(--mantine-color-blue-5);
+  background: var(--lexify-brand);
   width: 39px;
   height: 39px;
   display: grid;
@@ -371,9 +387,9 @@ p {
   border: 1px solid var(--lexify-border);
 }
 .own .message-bubble {
-  background: var(--mantine-color-blue-7);
+  background: var(--lexify-message-own);
   color: white;
-  border-color: var(--mantine-color-blue-7);
+  border-color: var(--lexify-message-own);
   border-radius: 13px 0 13px 13px;
 }
 .message-text {

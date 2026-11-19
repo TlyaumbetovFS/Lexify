@@ -1,6 +1,6 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
-import { createTheme, MantineProvider } from '@mantine/core'
+import { createTheme, MantineProvider, virtualColor } from '@mantine/core'
 import { ModalsProvider } from '@mantine/modals'
 import { Notifications } from '@mantine/notifications'
 import '@mantine/core/styles.css'
@@ -14,18 +14,31 @@ const theme = createTheme({
   defaultRadius: 'md',
   colors: {
     dark: [
-      '#e6edf8',
-      '#c4cfe0',
-      '#a4b2ca',
-      '#7c8ca8',
-      '#536480',
-      '#35445e',
-      '#25334a',
-      '#192337',
-      '#111a2a',
-      '#0c1321',
+      '#eeeef2',
+      '#d0d2da',
+      '#afb2bd',
+      '#8d929f',
+      '#666c78',
+      '#454b56',
+      '#2b3038',
+      '#1e2228',
+      '#15181c',
+      '#0d0f12',
     ],
-    blue: [
+    blue: virtualColor({ name: 'blue', light: 'spark', dark: 'lavender' }),
+    lavender: [
+      '#f2eefc',
+      '#e1d8fa',
+      '#cbbdf5',
+      '#b4a4f5',
+      '#a28bdf',
+      '#8971c8',
+      '#725cb6',
+      '#6550a5',
+      '#514084',
+      '#3e3264',
+    ],
+    spark: [
       '#edf3ff',
       '#dbe7ff',
       '#b7cfff',
