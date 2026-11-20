@@ -58,9 +58,9 @@ class WordServiceTest {
             return word;
         });
 
-        var result = service.create(1L, new WordRequest(" ПрИвЕт ", "Hello, friend!"));
+        var result = service.create(1L, new WordRequest(" ПрИвЕт ", "Hello, friend!", null));
 
-        assertThat(result).isEqualTo(new WordResponse(10L, "привет", "hello", "Hello, friend!", "ru", new DictionaryDetails(null, null, null)));
+        assertThat(result).isEqualTo(new WordResponse(10L, "привет", "hello", "Hello, friend!", "ru", new DictionaryDetails(null, null, null), null));
     }
 
     @Test
@@ -72,7 +72,7 @@ class WordServiceTest {
     @Test
     void rejectsDuplicateBeforeRequestingTranslation() {
         when(words.existsByUserIdAndRussianTextIgnoreCase(1L, "привет")).thenReturn(true);
-        assertStatus(409, () -> service.create(1L, new WordRequest("ПРИВЕТ", null)));
+        assertStatus(409, () -> service.create(1L, new WordRequest("ПРИВЕТ", null, null)));
         verifyNoInteractions(translation);
         verify(words, never()).saveAndFlush(any());
     }
@@ -80,7 +80,7 @@ class WordServiceTest {
     @Test
     void doesNotSaveWhenTranslationFails() {
         when(translation.translate("привет", "ru", "en")).thenThrow(new ResponseStatusException(HttpStatus.BAD_GATEWAY));
-        assertStatus(502, () -> service.create(1L, new WordRequest("привет", null)));
+        assertStatus(502, () -> service.create(1L, new WordRequest("привет", null, null)));
         verify(words, never()).saveAndFlush(any());
     }
 
@@ -92,7 +92,7 @@ class WordServiceTest {
 
     @Test
     void rejectsUpdatingAnotherUsersWord() {
-        assertStatus(404, () -> service.update(2L, 10L, new WordRequest("мир", null)));
+        assertStatus(404, () -> service.update(2L, 10L, new WordRequest("мир", null, null)));
         verifyNoInteractions(translation);
         verify(words, never()).saveAndFlush(any());
     }
@@ -109,7 +109,7 @@ class WordServiceTest {
         when(words.findByIdAndUserId(10L, 1L)).thenReturn(Optional.of(word()));
         when(words.saveAndFlush(any())).thenAnswer(invocation -> invocation.getArgument(0));
 
-        var result = service.update(1L, 10L, new WordRequest("Привет", "Hello!"));
+        var result = service.update(1L, 10L, new WordRequest("Привет", "Hello!", null));
 
         assertThat(result.example()).isEqualTo("Hello!");
         assertThat(result.englishText()).isEqualTo("hello");
@@ -123,7 +123,7 @@ class WordServiceTest {
         when(dictionary.lookup("world")).thenReturn(entry("world"));
         when(words.saveAndFlush(any())).thenAnswer(invocation -> invocation.getArgument(0));
 
-        var result = service.update(1L, 10L, new WordRequest("мир", null));
+        var result = service.update(1L, 10L, new WordRequest("мир", null, null));
 
         assertThat(result.russianText()).isEqualTo("мир");
         assertThat(result.englishText()).isEqualTo("world");
@@ -133,7 +133,7 @@ class WordServiceTest {
     void rejectsUpdatingToDuplicateWord() {
         when(words.findByIdAndUserId(10L, 1L)).thenReturn(Optional.of(word()));
         when(words.existsByUserIdAndRussianTextIgnoreCase(1L, "мир")).thenReturn(true);
-        assertStatus(409, () -> service.update(1L, 10L, new WordRequest("мир", null)));
+        assertStatus(409, () -> service.update(1L, 10L, new WordRequest("мир", null, null)));
         verifyNoInteractions(translation);
     }
 
@@ -154,7 +154,7 @@ class WordServiceTest {
         when(dictionary.lookup("hello")).thenReturn(entry);
         when(words.saveAndFlush(any())).thenAnswer(invocation -> invocation.getArgument(0));
 
-        var result = service.create(1L, new WordRequest(" HELLO ", null));
+        var result = service.create(1L, new WordRequest(" HELLO ", null, null));
 
         assertThat(result.englishText()).isEqualTo("hello");
         assertThat(result.russianText()).isEqualTo("привет");
@@ -166,7 +166,7 @@ class WordServiceTest {
     @Test
     void rejectsDuplicateEnglishBeforeCallingExternalServices() {
         when(words.existsByUserIdAndEnglishTextIgnoreCase(1L, "hello")).thenReturn(true);
-        assertStatus(409, () -> service.create(1L, new WordRequest("Hello", null)));
+        assertStatus(409, () -> service.create(1L, new WordRequest("Hello", null, null)));
         verifyNoInteractions(translation, dictionary, quota);
     }
 
@@ -176,7 +176,7 @@ class WordServiceTest {
         when(dictionary.lookup("hello")).thenReturn(entry("hello"));
         when(words.saveAndFlush(any())).thenAnswer(invocation -> invocation.getArgument(0));
 
-        var result = service.create(1L, new WordRequest("hello", null));
+        var result = service.create(1L, new WordRequest("hello", null, null));
 
         assertThat(result.example()).isNull();
         assertThat(result.dictionary().phonetic()).isNull();
@@ -209,7 +209,7 @@ class WordServiceTest {
         when(dictionary.lookup("hello")).thenReturn(entry("hello"));
         when(words.saveAndFlush(any())).thenAnswer(invocation -> invocation.getArgument(0));
 
-        var result = service.update(1L, 10L, new WordRequest("hello", null));
+        var result = service.update(1L, 10L, new WordRequest("hello", null, null));
 
         assertThat(result.sourceLanguage()).isEqualTo("en");
         assertThat(result.russianText()).isEqualTo("привет");
@@ -218,8 +218,8 @@ class WordServiceTest {
 
     @Test
     void rejectsMixedLanguagesAndNonWordInput() {
-        assertStatus(400, () -> service.create(1L, new WordRequest("hello мир", null)));
-        assertStatus(400, () -> service.create(1L, new WordRequest("12345", null)));
+        assertStatus(400, () -> service.create(1L, new WordRequest("hello мир", null, null)));
+        assertStatus(400, () -> service.create(1L, new WordRequest("12345", null, null)));
         verifyNoInteractions(translation, dictionary, quota);
     }
 

@@ -24,8 +24,9 @@ public class AnkiController {
     @PostMapping(value = "/import", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public AnkiImportResult importWords(@AuthenticationPrincipal Jwt jwt, @RequestParam MultipartFile file,
             @RequestParam long modelId, @RequestParam int englishField, @RequestParam int russianField,
-            @RequestParam(required = false) Integer exampleField, @RequestParam String name) {
+            @RequestParam(required = false) Integer exampleField,
+            @RequestParam(required = false) Integer hintField, @RequestParam String name) {
         return service.importWords(Long.valueOf(jwt.getSubject()), file, modelId, englishField, russianField,
-                exampleField, name);
+                exampleField, hintField, name);
     }
 }

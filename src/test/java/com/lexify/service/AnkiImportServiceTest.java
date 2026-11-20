@@ -32,10 +32,10 @@ class AnkiImportServiceTest {
     @Test
     void reusesExistingWordsAndReportsUnsupportedNotes() {
         var data = new AnkiPackageReader.PackageData(
-                List.of(new AnkiPreview.NoteType(1, "Basic", List.of("EN", "RU"), 3, List.of())),
-                List.of(new AnkiPackageReader.Note(1, 1, List.of("hello", "привет"), false),
-                        new AnkiPackageReader.Note(2, 1, List.of("world", "мир"), false),
-                        new AnkiPackageReader.Note(3, 1, List.of("world", "мир"), false),
+                List.of(new AnkiPreview.NoteType(1, "Basic", List.of("EN", "RU", "Explanation"), 3, List.of())),
+                List.of(new AnkiPackageReader.Note(1, 1, List.of("hello", "привет", "Неформальное приветствие"), false),
+                        new AnkiPackageReader.Note(2, 1, List.of("world", "мир", "Земля и её обитатели"), false),
+                        new AnkiPackageReader.Note(3, 1, List.of("world", "мир", "Земля и её обитатели"), false),
                         new AnkiPackageReader.Note(4, 2, List.of(), true)));
         when(reader.read(file)).thenReturn(data);
         when(users.lockById(1L)).thenReturn(Optional.of(new User()));
@@ -49,12 +49,13 @@ class AnkiImportServiceTest {
             collection.setId(5L);
             return collection;
         });
-        var result = service.importWords(1L, file, 1, 0, 1, null, "Anki");
+        var result = service.importWords(1L, file, 1, 0, 1, null, 2, "Anki");
         assertThat(result.created()).isEqualTo(1);
         assertThat(result.reused()).isEqualTo(2);
         assertThat(result.skipped()).isEqualTo(1);
         assertThat(result.warnings()).hasSize(1);
-        verify(words, times(1)).save(any());
+        assertThat(existing.getRussianHint()).isEqualTo("Неформальное приветствие");
+        verify(words).save(argThat(word -> "Земля и её обитатели".equals(word.getRussianHint())));
     }
 
     @Test
@@ -67,7 +68,7 @@ class AnkiImportServiceTest {
         word.setEnglishText("existing");
         word.setRussianText("старый");
         when(words.findByUserIdOrderByIdDesc(1L)).thenReturn(Collections.nCopies(10000, word));
-        assertThatThrownBy(() -> service.importWords(1L, file, 1, 0, 1, null, "Anki"))
+        assertThatThrownBy(() -> service.importWords(1L, file, 1, 0, 1, null, null, "Anki"))
                 .isInstanceOf(ResponseStatusException.class).hasMessageContaining("Лимит словаря");
         verify(words, never()).save(any());
         verifyNoInteractions(collections);
@@ -77,7 +78,7 @@ class AnkiImportServiceTest {
     void rejectsBadMappingBeforeWriting() {
         when(reader.read(file)).thenReturn(new AnkiPackageReader.PackageData(
                 List.of(new AnkiPreview.NoteType(1, "Basic", List.of("EN", "RU"), 1, List.of())), List.of()));
-        assertThatThrownBy(() -> service.importWords(1L, file, 1, 0, 0, null, "Anki"))
+        assertThatThrownBy(() -> service.importWords(1L, file, 1, 0, 0, null, null, "Anki"))
                 .isInstanceOf(ResponseStatusException.class);
         verifyNoInteractions(users, words, collections);
     }

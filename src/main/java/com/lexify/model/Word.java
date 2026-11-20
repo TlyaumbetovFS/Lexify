@@ -38,6 +38,9 @@ public class Word {
     @Column(length = 1000)
     private String example;
 
+    @Column(length = 1000)
+    private String russianHint;
+
     @Column(nullable = false, length = 2)
     private String sourceLanguage;
 

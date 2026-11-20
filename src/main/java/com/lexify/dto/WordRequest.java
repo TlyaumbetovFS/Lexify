@@ -5,6 +5,7 @@ import jakarta.validation.constraints.Size;
 
 public record WordRequest(
         @NotBlank @Size(max = 100) String text,
-        @Size(max = 1000) String example
+        @Size(max = 1000) String example,
+        @Size(max = 1000) String russianHint
 ) {
 }

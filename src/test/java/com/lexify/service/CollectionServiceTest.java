@@ -75,7 +75,7 @@ class CollectionServiceTest {
 
         var result = service.get(1L, 10L);
 
-        assertThat(result.words()).containsExactly(new WordResponse(20L, "привет", "hello", null, "ru", null));
+        assertThat(result.words()).containsExactly(new WordResponse(20L, "привет", "hello", null, "ru", null, null));
     }
 
     @Test

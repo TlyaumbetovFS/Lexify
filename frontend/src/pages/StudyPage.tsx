@@ -22,7 +22,7 @@ function interval(due: string) {
 }
 
 export function StudyPage({ api }: { api: Api }) {
-  const [direction, setDirection] = useState('en')
+  const [direction, setDirection] = useState('ru')
   const [collection, setCollection] = useState<string | null>(null)
   const [revealedKey, setRevealedKey] = useState('')
   const [busy, setBusy] = useState(false)
@@ -92,6 +92,11 @@ export function StudyPage({ api }: { api: Api }) {
                 <Title order={2} style={{ overflowWrap: 'anywhere' }}>
                   {card.direction === 'en' ? card.word.englishText : card.word.russianText}
                 </Title>
+                {card.direction === 'ru' && card.word.russianHint && (
+                  <Text c="dimmed" style={{ whiteSpace: 'pre-wrap', overflowWrap: 'anywhere' }}>
+                    {card.word.russianHint}
+                  </Text>
+                )}
                 {revealed ? (
                   <>
                     <Stack gap="sm" align="center">

@@ -209,6 +209,7 @@ function WordModal({
     initialValues: {
       text: word ? (word.sourceLanguage === 'en' ? word.englishText : word.russianText) : '',
       example: word?.example ?? '',
+      russianHint: word?.russianHint ?? '',
     },
     validate: { text: (value) => (value.trim() ? null : 'Введите слово') },
   })
@@ -226,6 +227,7 @@ function WordModal({
             await api(word ? `/words/${word.id}` : '/words', word ? 'PUT' : 'POST', {
               text: values.text.trim(),
               example: values.example.trim() || null,
+              russianHint: values.russianHint.trim(),
             })
             onSaved()
             onClose()
@@ -253,7 +255,10 @@ function WordModal({
             {...form.getInputProps('text')}
             onChange={(event) => {
               form.setFieldValue('text', event.currentTarget.value)
-              if (word) form.setFieldValue('example', '')
+              if (word) {
+                form.setFieldValue('example', '')
+                form.setFieldValue('russianHint', '')
+              }
             }}
           />
           <Textarea
@@ -264,6 +269,14 @@ function WordModal({
             maxLength={1000}
             disabled={busy}
             {...form.getInputProps('example')}
+          />
+          <Textarea
+            label="Объяснение на русском"
+            description="Покажем его рядом с русским словом до открытия ответа."
+            placeholder="Например, возможность войти или воспользоваться чем-либо"
+            maxLength={1000}
+            disabled={busy}
+            {...form.getInputProps('russianHint')}
           />
           <Group justify="flex-end">
             <Button variant="default" onClick={onClose} disabled={busy}>

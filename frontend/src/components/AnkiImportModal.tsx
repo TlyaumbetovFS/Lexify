@@ -12,13 +12,31 @@ export function AnkiImportModal({ api, onClose, onImported }: {
   const [english, setEnglish] = useState<string | null>('0')
   const [russian, setRussian] = useState<string | null>('1')
   const [example, setExample] = useState<string | null>(null)
+  const [hint, setHint] = useState<string | null>(null)
   const [name, setName] = useState('')
   const [busy, setBusy] = useState(false)
   const [result, setResult] = useState<AnkiImportResult | null>(null)
   const selected = preview?.noteTypes.find(item => String(item.id) === model)
   const fields = selected?.fields.map((label, index) => ({ value: String(index), label })) ?? []
-  const valid = english !== null && russian !== null && english !== russian
-    && (example === null || example !== english && example !== russian)
+  const assigned = [english, russian, example, hint].filter(value => value !== null)
+  const distinct = new Set(assigned).size === assigned.length
+  const emptyInPreview = (field: string | null) => field !== null
+    && !!selected?.samples.length && selected.samples.every(sample => !sample[Number(field)]?.trim())
+  const emptyRussian = emptyInPreview(russian)
+  const valid = english !== null && russian !== null && distinct
+
+  const selectModel = (type: AnkiPreview['noteTypes'][number] | undefined) => {
+    setModel(type ? String(type.id) : null)
+    const contains = (index: number, pattern: RegExp) =>
+      type?.samples.some(sample => pattern.test(sample[index] ?? ''))
+    const russianIndex = type?.fields.findIndex((_, index) => contains(index, /\p{Script=Cyrillic}/u)) ?? -1
+    const englishIndex = type?.fields.findIndex((_, index) => index !== russianIndex
+      && contains(index, /\p{Script=Latin}/u)) ?? -1
+    setEnglish(englishIndex >= 0 ? String(englishIndex) : null)
+    setRussian(russianIndex >= 0 ? String(russianIndex) : null)
+    setExample(null)
+    setHint(null)
+  }
 
   const upload = async (commit: boolean) => {
     if (!file || busy) return
@@ -32,6 +50,7 @@ export function AnkiImportModal({ api, onClose, onImported }: {
         body.append('englishField', english!)
         body.append('russianField', russian!)
         if (example !== null) body.append('exampleField', example)
+        if (hint !== null) body.append('hintField', hint)
         body.append('name', name.trim())
         const imported = await api<AnkiImportResult>('/anki/import', 'POST', body)
         setResult(imported)
@@ -39,7 +58,7 @@ export function AnkiImportModal({ api, onClose, onImported }: {
       } else {
         const data = await api<AnkiPreview>('/anki/preview', 'POST', body)
         setPreview(data)
-        setModel(data.noteTypes[0] ? String(data.noteTypes[0].id) : null)
+        selectModel(data.noteTypes[0])
       }
     } catch (error) { showError(error) }
     finally { setBusy(false) }
@@ -67,18 +86,27 @@ export function AnkiImportModal({ api, onClose, onImported }: {
                   <>
                     <TextInput label="Название подборки" maxLength={100} value={name} onChange={event => setName(event.currentTarget.value)} disabled={busy} />
                     <Select label="Тип заметки" data={preview.noteTypes.map(item => ({ value: String(item.id), label: `${item.name} (${item.notes})` }))}
-                      value={model} onChange={value => { setModel(value); setEnglish('0'); setRussian('1'); setExample(null) }} disabled={busy} />
+                      value={model} onChange={value => selectModel(preview.noteTypes.find(type => String(type.id) === value))} disabled={busy} />
                     <Group grow align="start">
-                      <Select label="Английское слово" data={fields} value={english} onChange={setEnglish} disabled={busy} />
-                      <Select label="Русский перевод" data={fields} value={russian} onChange={setRussian} disabled={busy} />
+                      <Select label="Английское слово (ответ)" placeholder="Выберите поле с ответом" data={fields} value={english} onChange={setEnglish} disabled={busy} />
+                      <Select label="Русское слово (лицевая сторона)" placeholder="Выберите поле с переводом" data={fields} value={russian} onChange={setRussian} disabled={busy} />
                     </Group>
-                    <Select clearable label="Пример (необязательно)" data={fields} value={example} onChange={setExample} disabled={busy} />
-                    {!valid && <Text c="red" size="sm">Для слова, перевода и примера выберите разные поля.</Text>}
+                    <Select clearable label="Объяснение на русском (необязательно)" description="Покажем до открытия ответа в режиме RU → EN."
+                      data={fields.filter(field => ![english, russian, example].includes(field.value))} value={hint} onChange={setHint} disabled={busy} />
+                    <Select clearable label="Пример после ответа (необязательно)"
+                      data={fields.filter(field => ![english, russian, hint].includes(field.value))} value={example} onChange={setExample} disabled={busy} />
+                    {!distinct && <Text c="red" size="sm">Выберите отдельное поле для каждого значения.</Text>}
+                    {(russian === null || emptyRussian) && (
+                      <Alert color="orange">В предпросмотре не видно русского перевода. Проверьте, в каком поле колоды он хранится.</Alert>
+                    )}
                     <Table.ScrollContainer minWidth={380}>
                       <Table>
-                        <Table.Thead><Table.Tr><Table.Th>English</Table.Th><Table.Th>Перевод</Table.Th><Table.Th>Пример</Table.Th></Table.Tr></Table.Thead>
+                        <Table.Thead><Table.Tr><Table.Th>Русское слово</Table.Th>{hint !== null && <Table.Th>Объяснение</Table.Th>}<Table.Th>Английский ответ</Table.Th>{example !== null && <Table.Th>Пример</Table.Th>}</Table.Tr></Table.Thead>
                         <Table.Tbody>{selected?.samples.map((sample, index) => <Table.Tr key={index}>
-                          <Table.Td>{sample[Number(english)]}</Table.Td><Table.Td>{sample[Number(russian)]}</Table.Td><Table.Td>{example === null ? '—' : sample[Number(example)]}</Table.Td>
+                          <Table.Td>{russian === null ? '—' : sample[Number(russian)] || '—'}</Table.Td>
+                          {hint !== null && <Table.Td>{sample[Number(hint)] || '—'}</Table.Td>}
+                          <Table.Td>{english === null ? '—' : sample[Number(english)] || '—'}</Table.Td>
+                          {example !== null && <Table.Td>{sample[Number(example)] || '—'}</Table.Td>}
                         </Table.Tr>)}</Table.Tbody>
                       </Table>
                     </Table.ScrollContainer>

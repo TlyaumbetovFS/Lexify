@@ -45,6 +45,9 @@ public class WordService {
         word.setUser(users.getReferenceById(userId));
         translate(word, text, source);
         fillDetails(word, request.example());
+        if (request.russianHint() != null) {
+            word.setRussianHint(request.russianHint().isBlank() ? null : request.russianHint().strip());
+        }
         quota.checkSize(word, available);
         return mapper.toResponse(words.saveAndFlush(word));
     }
@@ -63,6 +66,9 @@ public class WordService {
         }
         word.setSourceLanguage(source);
         fillDetails(word, request.example());
+        if (request.russianHint() != null) {
+            word.setRussianHint(request.russianHint().isBlank() ? null : request.russianHint().strip());
+        }
         quota.checkSize(word, available);
         return mapper.toResponse(words.saveAndFlush(word));
     }

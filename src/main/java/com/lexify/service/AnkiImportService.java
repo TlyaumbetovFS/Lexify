@@ -32,16 +32,16 @@ public class AnkiImportService {
 
     @Transactional
     public AnkiImportResult importWords(Long userId, MultipartFile file, long modelId, int englishField,
-                                        int russianField, Integer exampleField, String name) {
+                                        int russianField, Integer exampleField, Integer hintField, String name) {
         var data = reader.read(file);
         var type = data.types().stream().filter(value -> value.id() == modelId).findFirst()
                 .orElseThrow(() -> invalid("Выберите поддерживаемый тип заметки."));
         if (name == null || name.isBlank() || name.strip().length() > 100) throw invalid("Название подборки: от 1 до 100 символов.");
-        if (englishField < 0 || russianField < 0 || englishField >= type.fields().size()
-                || russianField >= type.fields().size() || englishField == russianField
-                || (exampleField != null && (exampleField < 0 || exampleField >= type.fields().size()
-                    || exampleField == englishField || exampleField == russianField))) {
-            throw invalid("Выберите разные поля слова, перевода и примера.");
+        var fields = Arrays.asList(englishField, russianField, exampleField, hintField)
+                .stream().filter(Objects::nonNull).toList();
+        if (fields.stream().anyMatch(index -> index < 0 || index >= type.fields().size())
+                || new HashSet<>(fields).size() != fields.size()) {
+            throw invalid("Выберите отдельное поле для каждого значения.");
         }
         var user = users.lockById(userId).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
         var existing = words.findByUserIdOrderByIdDesc(userId);
@@ -49,7 +49,7 @@ public class AnkiImportService {
         long bytes = 0;
         for (var word : existing) {
             byPair.put(key(word.getEnglishText(), word.getRussianText()), word);
-            bytes += size(word.getEnglishText(), word.getRussianText(), word.getExample());
+            bytes += size(word.getEnglishText(), word.getRussianText(), word.getExample(), word.getRussianHint());
         }
         var collection = new WordCollection();
         collection.setUser(user);
@@ -68,8 +68,10 @@ public class AnkiImportService {
             var english = note.fields().get(englishField).toLowerCase(Locale.ROOT);
             var russian = note.fields().get(russianField).toLowerCase(Locale.ROOT);
             var example = exampleField == null ? null : note.fields().get(exampleField);
+            var hint = hintField == null ? null : note.fields().get(hintField);
+            if (hint != null && hint.isBlank()) hint = null;
             if (english.isBlank() || russian.isBlank() || english.length() > 500 || russian.length() > 500
-                    || example != null && example.length() > 1000) {
+                    || example != null && example.length() > 1000 || hint != null && hint.length() > 1000) {
                 skipped++;
                 warn(warnings, "Заметка " + note.id() + ": пустые или слишком длинные поля.");
                 continue;
@@ -77,7 +79,7 @@ public class AnkiImportService {
             var pair = key(english, russian);
             var word = byPair.get(pair);
             if (word == null) {
-                bytes += size(english, russian, example);
+                bytes += size(english, russian, example, hint);
                 if (existing.size() + created >= VocabularyQuota.MAX_WORDS || bytes > VocabularyQuota.MAX_TEXT_BYTES) {
                     throw invalid("Лимит словаря: 10 000 слов и 30 МБ текста на пользователя. Импорт отменён целиком.");
                 }
@@ -86,16 +88,24 @@ public class AnkiImportService {
                 word.setEnglishText(english);
                 word.setRussianText(russian);
                 word.setExample(example);
+                word.setRussianHint(hint);
                 word.setSourceLanguage("en");
                 words.save(word);
                 byPair.put(pair, word);
                 created++;
             } else {
+                if (word.getRussianHint() == null && hint != null) {
+                    bytes += size(hint);
+                    if (bytes > VocabularyQuota.MAX_TEXT_BYTES) {
+                        throw invalid("Лимит словаря: 30 МБ текста на пользователя. Импорт отменён целиком.");
+                    }
+                    word.setRussianHint(hint);
+                }
                 reused++;
             }
             collection.getWords().add(word);
         }
-        if (collection.getWords().isEmpty()) throw invalid("Нет подходящих слов для импорта. Проверьте выбранные поля.");
+        if (collection.getWords().isEmpty()) throw invalid("Нет подходящих слов для импорта. В архиве должны быть заполнены поля английского слова и русского перевода.");
         collections.saveAndFlush(collection);
         return new AnkiImportResult(collection.getId(), created, reused, skipped, warnings);
     }

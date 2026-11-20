@@ -18,6 +18,7 @@ export interface Word {
   russianText: string
   englishText: string
   example: string | null
+  russianHint: string | null
   sourceLanguage: 'en' | 'ru'
   dictionary: DictionaryDetails | null
 }

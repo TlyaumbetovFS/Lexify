@@ -40,7 +40,7 @@ public interface WordRepository extends JpaRepository<Word, Long> {
     long countByUserId(Long userId);
 
     @Query(value = "select coalesce(sum(octet_length(english_text) + octet_length(russian_text) + "
-            + "coalesce(octet_length(example), 0)), 0) from words where user_id = :userId", nativeQuery = true)
+            + "coalesce(octet_length(example), 0) + coalesce(octet_length(russian_hint), 0)), 0) from words where user_id = :userId", nativeQuery = true)
     long textBytes(Long userId);
 
     @Query("select word.englishText from Word word")

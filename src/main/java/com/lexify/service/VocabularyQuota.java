@@ -29,7 +29,7 @@ public class VocabularyQuota {
 
     public static long bytes(Word word) {
         long total = 0;
-        for (var field : new String[] {word.getEnglishText(), word.getRussianText(), word.getExample()}) {
+        for (var field : new String[] {word.getEnglishText(), word.getRussianText(), word.getExample(), word.getRussianHint()}) {
             if (field != null) total += field.getBytes(StandardCharsets.UTF_8).length;
         }
         return total;
