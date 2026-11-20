@@ -5,6 +5,10 @@ spring:
     url: ${DB_URL:jdbc:postgresql://localhost:5432/lexify}
     username: ${DB_USERNAME:lexify}
     password: ${DB_PASSWORD:lexify}
+  servlet:
+    multipart:
+      max-file-size: 30MB
+      max-request-size: 31MB
   jpa:
     open-in-view: false
     hibernate:

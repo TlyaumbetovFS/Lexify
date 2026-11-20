@@ -17,6 +17,7 @@ import {
 } from '@mantine/core'
 import { Ellipsis, Folder, FolderOpen, Pencil, Plus, Trash2, X } from 'lucide-react'
 import { showError } from '../api'
+import { AnkiImportModal } from '../components/AnkiImportModal'
 import { DetailsModal } from '../components/DetailsModal'
 import { WordPronunciation } from '../components/WordPronunciation'
 import { EmptyState, LoadError } from '../components/Feedback'
@@ -28,6 +29,7 @@ export function CollectionsPage({ api }: { api: Api }) {
   const collections = useResource<Collection[]>(api, '/collections')
   const [selectedId, setSelectedId] = useState<number | null>(null)
   const [editing, setEditing] = useState<Collection | null>()
+  const [importing, setImporting] = useState(false)
   const [adding, setAdding] = useState(false)
   const vocabulary = useResource<Word[]>(api, adding ? '/words' : null)
   const selected = collections.data?.find((item) => item.id === selectedId) ?? collections.data?.[0]
@@ -41,9 +43,12 @@ export function CollectionsPage({ api }: { api: Api }) {
             Собирай слова по темам, планам и интересам.
           </Text>
         </div>
-        <Button leftSection={<Plus size={18} />} onClick={() => setEditing(null)}>
-          Создать подборку
-        </Button>
+        <Group>
+          <Button variant="default" onClick={() => setImporting(true)}>Импорт Anki</Button>
+          <Button leftSection={<Plus size={18} />} onClick={() => setEditing(null)}>
+            Создать подборку
+          </Button>
+        </Group>
       </div>
       {collections.error ? (
         <LoadError message={collections.error} retry={collections.reload} />
@@ -213,6 +218,10 @@ export function CollectionsPage({ api }: { api: Api }) {
           </Card>
         </div>
       )}
+      {importing && <AnkiImportModal api={api} onClose={() => setImporting(false)} onImported={id => {
+        setSelectedId(id)
+        collections.reload()
+      }} />}
       {editing !== undefined && (
         <DetailsModal
           title={editing ? 'Редактировать подборку' : 'Новая подборка'}

@@ -14,7 +14,7 @@ import {
   Tooltip,
 } from '@mantine/core'
 import { useDisclosure, useHash } from '@mantine/hooks'
-import { ChartNoAxesColumn, BookOpen, ChevronRight, Folder, LogOut, MessageCircle } from 'lucide-react'
+import { ChartNoAxesColumn, GraduationCap, BookOpen, ChevronRight, Folder, LogOut, MessageCircle } from 'lucide-react'
 import { LoadError } from './components/Feedback'
 import { ThemeToggle } from './components/ThemeToggle'
 import { useSession } from './hooks/useSession'
@@ -34,8 +34,13 @@ const StatisticsPage = lazy(() =>
   import('./pages/StatisticsPage').then((module) => ({ default: module.StatisticsPage })),
 )
 
+const StudyPage = lazy(() =>
+  import('./pages/StudyPage').then((module) => ({ default: module.StudyPage })),
+)
+
 const pages = [
   { id: 'dictionary', label: 'Мой словарь', icon: BookOpen },
+  { id: 'study', label: 'Учить', icon: GraduationCap },
   { id: 'collections', label: 'Подборки', icon: Folder },
   { id: 'chat', label: 'Чаты', icon: MessageCircle },
   { id: 'statistics', label: 'Статистика', icon: ChartNoAxesColumn },
@@ -145,6 +150,7 @@ export default function App() {
             }
           >
             {current.id === 'dictionary' && <WordsPage api={api} />}
+            {current.id === 'study' && <StudyPage api={api} />}
             {current.id === 'collections' && <CollectionsPage api={api} />}
             {current.id === 'chat' && <ChatPage api={api} session={session} />}
             {current.id === 'statistics' && <StatisticsPage api={api} />}

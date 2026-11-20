@@ -35,11 +35,13 @@ class WordServiceTest {
     private TranslationClient translation;
     @Mock
     private DictionaryService dictionary;
+    @Mock
+    private VocabularyQuota quota;
     private WordService service;
 
     @BeforeEach
     void setUp() {
-        service = new WordService(words, users, Mappers.getMapper(WordMapper.class), translation, dictionary);
+        service = new WordService(words, users, Mappers.getMapper(WordMapper.class), translation, dictionary, quota);
     }
 
     @Test
@@ -165,7 +167,7 @@ class WordServiceTest {
     void rejectsDuplicateEnglishBeforeCallingExternalServices() {
         when(words.existsByUserIdAndEnglishTextIgnoreCase(1L, "hello")).thenReturn(true);
         assertStatus(409, () -> service.create(1L, new WordRequest("Hello", null)));
-        verifyNoInteractions(translation, dictionary);
+        verifyNoInteractions(translation, dictionary, quota);
     }
 
     @Test
@@ -218,7 +220,7 @@ class WordServiceTest {
     void rejectsMixedLanguagesAndNonWordInput() {
         assertStatus(400, () -> service.create(1L, new WordRequest("hello мир", null)));
         assertStatus(400, () -> service.create(1L, new WordRequest("12345", null)));
-        verifyNoInteractions(translation, dictionary);
+        verifyNoInteractions(translation, dictionary, quota);
     }
 
     private DictionaryEntry entry(String text) {

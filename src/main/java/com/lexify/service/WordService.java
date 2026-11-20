@@ -25,6 +25,7 @@ public class WordService {
     private final WordMapper mapper;
     private final TranslationClient translation;
     private final DictionaryService dictionary;
+    private final VocabularyQuota quota;
 
     public List<WordResponse> list(Long userId) {
         return words.findByUserIdOrderByIdDesc(userId).stream().map(mapper::toResponse).toList();
@@ -39,16 +40,20 @@ public class WordService {
         var text = normalize(request.text());
         var source = detectLanguage(text);
         checkDuplicate(userId, text, source);
+        var available = quota.availableBytes(userId, 1);
         var word = new Word();
         word.setUser(users.getReferenceById(userId));
         translate(word, text, source);
         fillDetails(word, request.example());
+        quota.checkSize(word, available);
         return mapper.toResponse(words.saveAndFlush(word));
     }
 
     @Transactional
     public WordResponse update(Long userId, Long id, WordRequest request) {
+        var available = quota.availableBytes(userId, 0);
         var word = find(userId, id);
+        available += VocabularyQuota.bytes(word);
         var text = normalize(request.text());
         var source = detectLanguage(text);
         var currentText = "ru".equals(source) ? word.getRussianText() : word.getEnglishText();
@@ -58,13 +63,17 @@ public class WordService {
         }
         word.setSourceLanguage(source);
         fillDetails(word, request.example());
+        quota.checkSize(word, available);
         return mapper.toResponse(words.saveAndFlush(word));
     }
 
     @Transactional
     public WordResponse enrich(Long userId, Long id) {
+        var available = quota.availableBytes(userId, 0);
         var word = find(userId, id);
+        available += VocabularyQuota.bytes(word);
         fillDetails(word, word.getExample());
+        quota.checkSize(word, available);
         return mapper.toResponse(words.saveAndFlush(word));
     }
 

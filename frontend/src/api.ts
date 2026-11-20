@@ -13,6 +13,7 @@ const messages: Record<string, string> = {
   'Message text must contain between 1 and 2000 characters':
     'Сообщение должно содержать от 1 до 2000 символов.',
   'Room not found': 'Комната больше не доступна.',
+  'Card already reviewed; refresh the queue': 'Карточка уже оценена в другой вкладке. Обновите очередь.',
 }
 
 export class ApiError extends Error {
@@ -20,13 +21,14 @@ export class ApiError extends Error {
 
   constructor(status: number, detail?: string) {
     super(
-      messages[detail ?? ''] ??
+      messages[detail ?? ''] ?? (detail && /[а-яё]/i.test(detail) ? detail : undefined) ??
         {
           400: 'Проверьте заполнение полей.',
           401: 'Сессия завершена. Войдите ещё раз.',
           403: 'У вас нет прав на это действие.',
           404: 'Запись больше не доступна.',
-          409: 'Такая запись уже существует.',
+          409: 'Запись уже изменилась. Обновите страницу.',
+          413: 'Файл слишком большой. Максимальный размер — 30 МБ.',
           502: 'Перевод временно недоступен. Попробуйте ещё раз.',
         }[status] ??
         'Не удалось выполнить запрос. Попробуйте ещё раз.',
@@ -48,9 +50,9 @@ export async function request<T>(
       headers: {
         ...(path.startsWith('/auth/') ? { 'X-Lexify-Session': '1' } : {}),
         ...(token ? { Authorization: `Bearer ${token}` } : {}),
-        ...(body !== undefined ? { 'Content-Type': 'application/json' } : {}),
+        ...(body !== undefined && !(body instanceof FormData) ? { 'Content-Type': 'application/json' } : {}),
       },
-      body: body === undefined ? undefined : JSON.stringify(body),
+      body: body instanceof FormData ? body : body === undefined ? undefined : JSON.stringify(body),
     })
   } catch {
     throw new Error('Нет связи с сервером. Проверьте подключение и попробуйте ещё раз.')

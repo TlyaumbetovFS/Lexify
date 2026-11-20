@@ -53,6 +53,33 @@ export interface ChatEvent {
 
 export type Api = <T>(path: string, method?: string, body?: unknown) => Promise<T>
 
+export interface StudyQueue {
+  total: number
+  newCards: number
+  dueCards: number
+  nextDue: string | null
+  card: {
+    word: Word
+    direction: 'en' | 'ru'
+    revision: number
+    options: { rating: number; due: string }[]
+  } | null
+}
+
+export interface AnkiPreview {
+  noteTypes: { id: number; name: string; fields: string[]; notes: number; samples: string[][] }[]
+  totalNotes: number
+  unsupportedNotes: number
+}
+
+export interface AnkiImportResult {
+  collectionId: number
+  created: number
+  reused: number
+  skipped: number
+  warnings: string[]
+}
+
 export interface Statistics {
   users: number
   rooms: number
