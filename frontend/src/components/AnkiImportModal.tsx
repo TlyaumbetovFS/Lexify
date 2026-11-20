@@ -22,7 +22,7 @@ export function AnkiImportModal({ api, onClose, onImported }: {
 
   const upload = async (commit: boolean) => {
     if (!file || busy) return
-    if (file.size > 30 * 1024 * 1024) { showError(new Error('Максимальный размер файла — 30 МБ.')); return }
+    if (file.size > 100 * 1024 * 1024) { showError(new Error('Максимальный размер файла — 100 МБ.')); return }
     const body = new FormData()
     body.append('file', file)
     setBusy(true)
@@ -82,7 +82,7 @@ export function AnkiImportModal({ api, onClose, onImported }: {
                         </Table.Tr>)}</Table.Tbody>
                       </Table>
                     </Table.ScrollContainer>
-                    <Text size="xs" c="dimmed">Другие типы заметок будут пропущены. Лимиты импорта: 30 МБ на файл, 100 МБ на распакованную базу; словарь — до 10 000 слов и 30 МБ текста.</Text>
+                    <Text size="xs" c="dimmed">Другие типы заметок будут пропущены. Лимиты импорта: 100 МБ на файл, 100 МБ на распакованную базу; словарь — до 10 000 слов и 30 МБ текста.</Text>
                     <Button loading={busy} disabled={!valid || !model || !name.trim()} onClick={() => void upload(true)}>Импортировать в подборку</Button>
                   </>
                 )}

@@ -16,7 +16,7 @@ import tools.jackson.databind.json.JsonMapper;
 
 @Component
 public class AnkiPackageReader {
-    public static final long MAX_FILE = 30L * 1024 * 1024;
+    public static final long MAX_FILE = 100L * 1024 * 1024;
     private static final long MAX_DATABASE = 100L * 1024 * 1024;
     private static final int MAX_NOTES = 10000;
     private final JsonMapper json = JsonMapper.builder().build();
@@ -27,7 +27,7 @@ public class AnkiPackageReader {
     public PackageData read(MultipartFile file) {
         if (file.isEmpty() || file.getSize() > MAX_FILE || file.getOriginalFilename() == null
                 || !file.getOriginalFilename().toLowerCase(Locale.ROOT).endsWith(".apkg")) {
-            throw invalid("Загрузите файл .apkg размером до 30 МБ.");
+            throw invalid("Загрузите файл .apkg размером до 100 МБ.");
         }
         Path archive = null;
         Path database = null;

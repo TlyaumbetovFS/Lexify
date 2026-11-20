@@ -50,7 +50,7 @@ class AnkiPackageReaderTest {
         var file = new MockMultipartFile("file", "words.apkg", "application/zip", new byte[1]) {
             @Override public long getSize() { return AnkiPackageReader.MAX_FILE + 1; }
         };
-        assertThatThrownBy(() -> reader.read(file)).isInstanceOf(ResponseStatusException.class).hasMessageContaining("30 МБ");
+        assertThatThrownBy(() -> reader.read(file)).isInstanceOf(ResponseStatusException.class).hasMessageContaining("100 МБ");
     }
 
     @Test
