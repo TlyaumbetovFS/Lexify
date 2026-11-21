@@ -1,6 +1,7 @@
 package com.lexify.service;
 
 import com.lexify.dto.CollectionRequest;
+import com.lexify.dto.CollectionSummary;
 import com.lexify.dto.CollectionResponse;
 import com.lexify.mapper.CollectionMapper;
 import com.lexify.model.Word;
@@ -27,6 +28,10 @@ public class CollectionService {
 
     public List<CollectionResponse> list(Long userId) {
         return collections.findByUserIdOrderByIdDesc(userId).stream().map(mapper::toResponse).toList();
+    }
+
+    public List<CollectionSummary> summaries(Long userId) {
+        return collections.summaries(userId);
     }
 
     public CollectionResponse get(Long userId, Long id) {

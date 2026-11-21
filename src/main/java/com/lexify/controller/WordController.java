@@ -1,6 +1,9 @@
 package com.lexify.controller;
 
 import com.lexify.dto.WordRequest;
+import com.lexify.dto.WordPage;
+import jakarta.validation.constraints.Min;
+import org.springframework.web.bind.annotation.RequestParam;
 import com.lexify.dto.WordResponse;
 import com.lexify.service.WordService;
 import jakarta.validation.Valid;
@@ -29,6 +32,13 @@ public class WordController {
     @GetMapping
     public List<WordResponse> list(@AuthenticationPrincipal Jwt jwt) {
         return service.list(Long.valueOf(jwt.getSubject()));
+    }
+
+    @GetMapping("/page")
+    public WordPage page(@AuthenticationPrincipal Jwt jwt, @RequestParam(defaultValue = "1") @Min(1) int page,
+                         @RequestParam(defaultValue = "") String query, @RequestParam(required = false) Long collectionId,
+                         @RequestParam(defaultValue = "false") boolean exclude) {
+        return service.page(Long.valueOf(jwt.getSubject()), page, query, collectionId, exclude);
     }
 
     @GetMapping("/{id}")

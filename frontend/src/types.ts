@@ -27,7 +27,7 @@ export interface Collection {
   id: number
   name: string
   description: string | null
-  words: Word[]
+  wordCount: number
 }
 
 export interface Room {

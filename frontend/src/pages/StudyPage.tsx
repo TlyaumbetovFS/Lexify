@@ -26,7 +26,7 @@ export function StudyPage({ api }: { api: Api }) {
   const [collection, setCollection] = useState<string | null>(null)
   const [revealedKey, setRevealedKey] = useState('')
   const [busy, setBusy] = useState(false)
-  const collections = useResource<Collection[]>(api, '/collections')
+  const collections = useResource<Collection[]>(api, '/collections/summaries')
   const queue = useResource<StudyQueue>(api, `/study?direction=${direction}${collection ? `&collectionId=${collection}` : ''}`)
   const card = queue.data?.card
   const key = card ? `${collection}-${card.word.id}-${card.direction}-${card.revision}` : ''

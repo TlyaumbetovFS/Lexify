@@ -7,7 +7,8 @@ import {
   Group,
   Menu,
   Modal,
-  Select,
+  Pagination,
+  TextInput,
   Skeleton,
   Stack,
   Table,
@@ -23,16 +24,18 @@ import { WordPronunciation } from '../components/WordPronunciation'
 import { EmptyState, LoadError } from '../components/Feedback'
 import { confirmDelete } from '../components/confirmDelete'
 import { useResource } from '../hooks/useResource'
-import type { Api, Collection, Word } from '../types'
+import { useWordPage } from '../hooks/useWordPage'
+import type { Api, Collection } from '../types'
 
 export function CollectionsPage({ api }: { api: Api }) {
-  const collections = useResource<Collection[]>(api, '/collections')
+  const collections = useResource<Collection[]>(api, '/collections/summaries')
   const [selectedId, setSelectedId] = useState<number | null>(null)
   const [editing, setEditing] = useState<Collection | null>()
   const [importing, setImporting] = useState(false)
   const [adding, setAdding] = useState(false)
-  const vocabulary = useResource<Word[]>(api, adding ? '/words' : null)
   const selected = collections.data?.find((item) => item.id === selectedId) ?? collections.data?.[0]
+
+  const words = useWordPage(api, selected ? `&collectionId=${selected.id}` : null)
 
   return (
     <Stack gap={28}>
@@ -90,7 +93,7 @@ export function CollectionsPage({ api }: { api: Api }) {
                       {item.name}
                     </Text>
                     <Text size="xs" c="dimmed">
-                      Слов: {item.words.length}
+                      Слов: {item.wordCount}
                     </Text>
                   </div>
                 </UnstyledButton>
@@ -104,7 +107,7 @@ export function CollectionsPage({ api }: { api: Api }) {
                   <div>
                     <Group gap="sm">
                       <Title order={2}>{selected.name}</Title>
-                      <Badge variant="light">{selected.words.length}</Badge>
+                      <Badge variant="light">{selected.wordCount}</Badge>
                     </Group>
                     <Text size="sm" c="dimmed" mt="xs">
                       {selected.description || 'Твоя коллекция полезных слов.'}
@@ -155,7 +158,7 @@ export function CollectionsPage({ api }: { api: Api }) {
                     Добавить слово
                   </Button>
                 </Group>
-                {selected.words.length ? (
+                {words.error ? <LoadError message={words.error} retry={words.reload} /> : words.loading ? <Skeleton height={180} /> : words.data?.items.length ? (
                   <Table.ScrollContainer minWidth={380}>
                     <Table verticalSpacing="md" highlightOnHover>
                       <Table.Thead>
@@ -166,7 +169,7 @@ export function CollectionsPage({ api }: { api: Api }) {
                         </Table.Tr>
                       </Table.Thead>
                       <Table.Tbody>
-                        {selected.words.map((word) => (
+                        {words.data.items.map((word) => (
                           <Table.Tr key={word.id}>
                             <Table.Td>
                               <Text fw={650} c="blue" size="sm">
@@ -193,6 +196,7 @@ export function CollectionsPage({ api }: { api: Api }) {
                                       `/collections/${selected.id}/words/${word.id}`,
                                       'DELETE',
                                     )
+                                    words.reload()
                                     collections.reload()
                                   } catch (error) {
                                     showError(error)
@@ -213,6 +217,7 @@ export function CollectionsPage({ api }: { api: Api }) {
                     description="Добавь слова из своего словаря — они могут быть сразу в нескольких подборках."
                   />
                 )}
+                {words.data && words.data.pages > 1 && <Pagination mt="md" value={words.page} total={words.data.pages} onChange={words.setPage} />}
               </>
             )}
           </Card>
@@ -229,7 +234,7 @@ export function CollectionsPage({ api }: { api: Api }) {
           onClose={() => setEditing(undefined)}
           onSave={async (value) => {
             const saved = await api<Collection>(
-              editing ? `/collections/${editing.id}` : '/collections',
+              editing ? `/collections/${editing.id}?summary=true` : '/collections',
               editing ? 'PUT' : 'POST',
               value,
             )
@@ -240,14 +245,12 @@ export function CollectionsPage({ api }: { api: Api }) {
       )}
       {adding && selected && (
         <AddWordModal
-          words={vocabulary.data ?? []}
-          error={vocabulary.error}
-          loading={vocabulary.loading}
+          api={api}
           selected={selected}
-          onRetry={vocabulary.reload}
           onClose={() => setAdding(false)}
           onSave={async (id) => {
-            await api(`/collections/${selected.id}/words/${id}`, 'PUT')
+            await api(`/collections/${selected.id}/words/${id}?summary=true`, 'PUT')
+            words.reload()
             collections.reload()
           }}
         />
@@ -257,76 +260,41 @@ export function CollectionsPage({ api }: { api: Api }) {
 }
 
 function AddWordModal({
-  words,
-  selected,
-  onClose,
-  onSave,
-  loading,
-  error,
-  onRetry,
+  api, selected, onClose, onSave,
 }: {
-  words: Word[]
+  api: Api
   selected: Collection
   onClose: () => void
   onSave: (id: string) => Promise<void>
-  loading: boolean
-  error: string
-  onRetry: () => void
 }) {
-  const [value, setValue] = useState<string | null>(null)
+  const words = useWordPage(api, `&collectionId=${selected.id}&exclude=true`)
   const [busy, setBusy] = useState(false)
-  const options = words
-    .filter((word) => !selected.words.some((existing) => existing.id === word.id))
-    .map((word) => ({ value: String(word.id), label: `${word.englishText} — ${word.russianText}` }))
   return (
     <Modal opened title="Добавить слово в подборку" centered onClose={() => !busy && onClose()}>
       <Stack>
-        {error ? (
-          <LoadError message={error} retry={onRetry} />
-        ) : (
-          <>
-            <Text size="sm" c="dimmed">
-              Выбери слово из своего словаря. Оно останется доступно и в других подборках.
-            </Text>
-            <Select
-              label="Слово"
-              placeholder={loading ? 'Загрузка…' : 'Начни вводить слово'}
-              data={options}
-              value={value}
-              onChange={setValue}
-              searchable
-              nothingFoundMessage="Слово не найдено"
-              disabled={loading || busy}
-            />
-            {!loading && !options.length && (
-              <Text size="sm" c="dimmed">
-                Все доступные слова уже добавлены. Новые слова можно добавить в разделе «Мой
-                словарь».
-              </Text>
-            )}
-          </>
+        <TextInput label="Поиск по словарю" value={words.search} onChange={e => words.changeSearch(e.currentTarget.value)} />
+        {words.error ? <LoadError message={words.error} retry={words.reload} /> : words.loading ? <Skeleton height={80} /> : (
+          <Stack gap="xs">
+            {words.data?.items.map(word => (
+              <Button key={word.id} variant="subtle" disabled={busy} onClick={async () => {
+                setBusy(true)
+                try {
+                  await onSave(String(word.id))
+                  onClose()
+                } catch (error) {
+                  showError(error)
+                } finally {
+                  setBusy(false)
+                }
+              }}>{word.englishText} — {word.russianText}</Button>
+            ))}
+            {!words.data?.items.length && <Text c="dimmed">Нет подходящих слов для добавления.</Text>}
+            {words.data && words.data.pages > 1 && <Pagination total={words.data.pages} value={words.page} onChange={words.setPage} />}
+          </Stack>
         )}
         <Group justify="flex-end">
           <Button variant="default" onClick={onClose} disabled={busy}>
             Отмена
-          </Button>
-          <Button
-            disabled={!value || !!error}
-            loading={busy}
-            onClick={async () => {
-              if (!value) return
-              setBusy(true)
-              try {
-                await onSave(value)
-                onClose()
-              } catch (error) {
-                showError(error)
-              } finally {
-                setBusy(false)
-              }
-            }}
-          >
-            Добавить
           </Button>
         </Group>
       </Stack>

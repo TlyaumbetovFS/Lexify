@@ -2,6 +2,8 @@ package com.lexify.service;
 
 import com.lexify.client.TranslationClient;
 import com.lexify.dto.WordRequest;
+import com.lexify.dto.WordPage;
+import org.springframework.data.domain.PageRequest;
 import com.lexify.dto.WordResponse;
 import com.lexify.mapper.WordMapper;
 import com.lexify.model.Word;
@@ -29,6 +31,11 @@ public class WordService {
 
     public List<WordResponse> list(Long userId) {
         return words.findByUserIdOrderByIdDesc(userId).stream().map(mapper::toResponse).toList();
+    }
+
+    public WordPage page(Long userId, int page, String query, Long collectionId, boolean exclude) {
+        var result = words.searchPage(userId, query.strip(), collectionId, exclude, PageRequest.of(page - 1, 24));
+        return new WordPage(result.map(mapper::toResponse).getContent(), result.getTotalElements(), result.getTotalPages());
     }
 
     public WordResponse get(Long userId, Long id) {

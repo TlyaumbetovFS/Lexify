@@ -1,6 +1,7 @@
 package com.lexify.controller;
 
 import com.lexify.dto.CollectionRequest;
+import com.lexify.dto.CollectionSummary;
 import com.lexify.dto.CollectionResponse;
 import com.lexify.service.CollectionService;
 import jakarta.validation.Valid;
@@ -16,6 +17,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -31,6 +33,11 @@ public class CollectionController {
         return service.list(Long.valueOf(jwt.getSubject()));
     }
 
+    @GetMapping("/summaries")
+    public List<CollectionSummary> summaries(@AuthenticationPrincipal Jwt jwt) {
+        return service.summaries(Long.valueOf(jwt.getSubject()));
+    }
+
     @GetMapping("/{id}")
     public CollectionResponse get(@AuthenticationPrincipal Jwt jwt, @PathVariable Long id) {
         return service.get(Long.valueOf(jwt.getSubject()), id);
@@ -43,9 +50,10 @@ public class CollectionController {
     }
 
     @PutMapping("/{id}")
-    public CollectionResponse update(@AuthenticationPrincipal Jwt jwt, @PathVariable Long id,
-                                     @Valid @RequestBody CollectionRequest request) {
-        return service.update(Long.valueOf(jwt.getSubject()), id, request);
+    public Object update(@AuthenticationPrincipal Jwt jwt, @PathVariable Long id,
+                                     @Valid @RequestBody CollectionRequest request, @RequestParam(defaultValue = "false") boolean summary) {
+        var result = service.update(Long.valueOf(jwt.getSubject()), id, request);
+        return summary ? new CollectionSummary(result.id(), result.name(), result.description(), result.words().size()) : result;
     }
 
     @DeleteMapping("/{id}")
@@ -55,9 +63,10 @@ public class CollectionController {
     }
 
     @PutMapping("/{id}/words/{wordId}")
-    public CollectionResponse addWord(@AuthenticationPrincipal Jwt jwt, @PathVariable Long id,
-                                      @PathVariable Long wordId) {
-        return service.addWord(Long.valueOf(jwt.getSubject()), id, wordId);
+    public Object addWord(@AuthenticationPrincipal Jwt jwt, @PathVariable Long id,
+                                      @PathVariable Long wordId, @RequestParam(defaultValue = "false") boolean summary) {
+        var result = service.addWord(Long.valueOf(jwt.getSubject()), id, wordId);
+        return summary ? new CollectionSummary(result.id(), result.name(), result.description(), result.words().size()) : result;
     }
 
     @DeleteMapping("/{id}/words/{wordId}")

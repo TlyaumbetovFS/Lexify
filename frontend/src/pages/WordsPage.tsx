@@ -7,6 +7,7 @@ import {
   Group,
   Menu,
   Modal,
+  Pagination,
   SimpleGrid,
   Skeleton,
   Stack,
@@ -29,18 +30,13 @@ import { showError } from '../api'
 import { WordPronunciation } from '../components/WordPronunciation'
 import { EmptyState, LoadError } from '../components/Feedback'
 import { confirmDelete } from '../components/confirmDelete'
-import { useResource } from '../hooks/useResource'
+import { useWordPage } from '../hooks/useWordPage'
 import type { Api, Word } from '../types'
 
 export function WordsPage({ api }: { api: Api }) {
-  const words = useResource<Word[]>(api, '/words')
-  const [search, setSearch] = useState('')
+  const words = useWordPage(api)
+  const { search } = words
   const [editing, setEditing] = useState<Word | null>()
-  const filtered = (words.data ?? []).filter((word) =>
-    `${word.russianText} ${word.englishText} ${word.example ?? ''}`
-      .toLowerCase()
-      .includes(search.toLowerCase()),
-  )
 
   return (
     <Stack gap={28}>
@@ -62,9 +58,9 @@ export function WordsPage({ api }: { api: Api }) {
       </div>
       <Group justify="space-between" gap="md">
         <Group gap="sm">
-          <Text fw={650}>Все слова</Text>
+          <Text fw={650}>{search ? 'Найдено' : 'Все слова'}</Text>
           <Badge variant="light" color="gray">
-            {words.data?.length ?? 0}
+            {words.data?.total ?? 0}
           </Badge>
         </Group>
         <TextInput
@@ -73,7 +69,7 @@ export function WordsPage({ api }: { api: Api }) {
           placeholder="Найти слово или перевод"
           leftSection={<Search size={17} />}
           value={search}
-          onChange={(event) => setSearch(event.currentTarget.value)}
+          onChange={(event) => words.changeSearch(event.currentTarget.value)}
           size="sm"
         />
       </Group>
@@ -85,9 +81,9 @@ export function WordsPage({ api }: { api: Api }) {
             <Skeleton key={i} height={210} radius="lg" />
           ))}
         </SimpleGrid>
-      ) : filtered.length ? (
+      ) : words.data?.items.length ? (
         <SimpleGrid cols={{ base: 1, sm: 2, xl: 3 }} spacing="lg" aria-busy={words.loading}>
-          {filtered.map((word) => (
+          {words.data.items.map((word) => (
             <Card key={word.id} className="word-card" padding="lg" radius="md" withBorder>
               <Group justify="space-between" mb="xs">
                 <Badge variant="light" color="blue" size="xs">
@@ -181,12 +177,15 @@ export function WordsPage({ api }: { api: Api }) {
           }
         />
       )}
+      {words.data && words.data.pages > 1 && (
+        <Pagination value={words.page} total={words.data.pages} onChange={words.setPage} />
+      )}
       {editing !== undefined && (
         <WordModal
           api={api}
           word={editing}
           onClose={() => setEditing(undefined)}
-          onSaved={words.reload}
+          onSaved={() => { if (editing === null) words.changeSearch(''); words.reload() }}
         />
       )}
     </Stack>
